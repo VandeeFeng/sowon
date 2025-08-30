@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 
 #include "./digits.h"
+#include "25hour.h"
 
 #ifdef PENGER
 #include "./penger_walk_sheet.h"
@@ -17,10 +18,10 @@
 //#define DELTA_TIME (1.0f / FPS)
 #define SPRITE_CHAR_WIDTH (300 / 2)
 #define SPRITE_CHAR_HEIGHT (380 / 2)
-#define CHAR_WIDTH (300 / 2)
+#define SOWON_CHAR_WIDTH (300 / 2)
 #define CHAR_HEIGHT (380 / 2)
 #define CHARS_COUNT 8
-#define TEXT_WIDTH (CHAR_WIDTH * CHARS_COUNT)
+#define TEXT_WIDTH (SOWON_CHAR_WIDTH * CHARS_COUNT)
 #define TEXT_HEIGHT (CHAR_HEIGHT)
 #define WIGGLE_COUNT 3
 #define WIGGLE_DURATION (0.40f / WIGGLE_COUNT)
@@ -89,7 +90,7 @@ SDL_Texture *load_penger_png_file_as_texture(SDL_Renderer *renderer)
 void render_digit_at(SDL_Renderer *renderer, SDL_Texture *digits, size_t digit_index,
                      size_t wiggle_index, int *pen_x, int *pen_y, float user_scale, float fit_scale)
 {
-    const int effective_digit_width = (int) floorf((float) CHAR_WIDTH * user_scale * fit_scale);
+    const int effective_digit_width = (int) floorf((float) SOWON_CHAR_WIDTH * user_scale * fit_scale);
     const int effective_digit_height = (int) floorf((float) CHAR_HEIGHT * user_scale * fit_scale);
 
     const SDL_Rect src_rect = {
@@ -157,7 +158,7 @@ void initial_pen(SDL_Window *window, int *pen_x, int *pen_y, float user_scale, f
         *fit_scale = (float) h / (float) TEXT_HEIGHT;
     }
 
-    const int effective_digit_width = (int) floorf((float) CHAR_WIDTH * user_scale * *fit_scale);
+    const int effective_digit_width = (int) floorf((float) SOWON_CHAR_WIDTH * user_scale * *fit_scale);
     const int effective_digit_height = (int) floorf((float) CHAR_HEIGHT * user_scale * *fit_scale);
     *pen_x = w / 2 - effective_digit_width * CHARS_COUNT / 2;
     *pen_y = h / 2 - effective_digit_height / 2;
@@ -376,7 +377,6 @@ int main(int argc, char **argv)
         SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
         SDL_RenderClear(renderer);
         {
-            const size_t t = (size_t) floorf(fmaxf(displayed_time, 0.0f));
             // PENGER BEGIN //////////////////////////////
 
             #ifdef PENGER
@@ -392,22 +392,26 @@ int main(int argc, char **argv)
 
 
             // TODO: support amount of hours >99
-            const size_t hours = t / 60 / 60;
-            render_digit_at(renderer, digits, hours / 10,   wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
-            render_digit_at(renderer, digits, hours % 10,  (wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
+            Chrono25Time chronoTime;
+            convert_to_25hour(time(NULL), &chronoTime);
+            const size_t chrono_hours = (size_t) chronoTime.new_hours;
+            const size_t chrono_minutes = (size_t) chronoTime.new_minutes;
+            const size_t chrono_seconds = (size_t) chronoTime.new_seconds;
+            render_digit_at(renderer, digits, chrono_hours / 10,   wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
+            render_digit_at(renderer, digits, chrono_hours % 10,  (wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
             render_digit_at(renderer, digits, COLON_INDEX,  wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
 
-            const size_t minutes = t / 60 % 60;
+            const size_t minutes = chrono_minutes;
             render_digit_at(renderer, digits, minutes / 10, (wiggle_index + 2) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
             render_digit_at(renderer, digits, minutes % 10, (wiggle_index + 3) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
             render_digit_at(renderer, digits, COLON_INDEX,  (wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
 
-            const size_t seconds = t % 60;
+            const size_t seconds = chrono_seconds;
             render_digit_at(renderer, digits, seconds / 10, (wiggle_index + 4) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
             render_digit_at(renderer, digits, seconds % 10, (wiggle_index + 5) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
 
             char title[TITLE_CAP];
-            snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
+            snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", chrono_hours, chrono_minutes, chrono_seconds);
             if (strcmp(prev_title, title) != 0) {
                 SDL_SetWindowTitle(window, title);
             }
