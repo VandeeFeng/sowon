@@ -324,6 +324,15 @@ int main(int argc, char **argv)
                 } break;
                 }
             } break;
+            case RGFW_mouseButtonPressed: {
+                if (win->event.keyMod & RGFW_modControl) {
+                    if (win->event.scroll > 0) {
+                        state.user_scale += SCALE_FACTOR * state.user_scale;
+                    } else if (win->event.scroll < 0) {
+                        state.user_scale -= SCALE_FACTOR * state.user_scale;
+                    }
+                }
+            } break;
             }
         }
         // INPUT END //////////////////////////////
