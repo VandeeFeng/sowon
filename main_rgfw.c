@@ -97,7 +97,7 @@ bool link_program(GLuint vert_shader, GLuint frag_shader, GLuint *program)
     return program;
 }
 
-GLuint load_png_file_data_as_gl_texture(uint32_t *data, size_t width, size_t height)
+GLuint load_image_data_as_gl_texture(uint32_t *data, size_t width, size_t height)
 {
     GLuint texture = 0;
     glGenTextures(1, &texture);
@@ -240,9 +240,9 @@ int main(int argc, char **argv)
     glUniform2f(tex_size_uni, digits_width, digits_height);
 
     glActiveTexture(GL_TEXTURE0);
-    load_png_file_data_as_gl_texture(digits_data, digits_width, digits_height);
+    load_image_data_as_gl_texture(digits_data, digits_width, digits_height);
     glActiveTexture(GL_TEXTURE1);
-    load_png_file_data_as_gl_texture(penger_data, penger_width, penger_height);
+    load_image_data_as_gl_texture(penger_data, penger_width, penger_height);
 
     set_texture_color_mod(MAIN_COLOR_R/255.0f, MAIN_COLOR_G/255.0f, MAIN_COLOR_B/255.0f);
     if (state.paused) {
