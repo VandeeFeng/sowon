@@ -219,7 +219,7 @@ int main(int argc, char **argv)
     RGFW_setGLHint(RGFW_glMinor, 3);
 
     RGFW_rect win_rect = RGFW_RECT(0, 0, TEXT_WIDTH, TEXT_HEIGHT*2);
-    RGFW_window* win = RGFW_createWindow("sowon", win_rect, (u64)0);
+    RGFW_window* win = RGFW_createWindow("sowon (RGFW)", win_rect, 0);
 
     if (!load_gl_extensions()) return 1;
 
@@ -279,17 +279,20 @@ int main(int argc, char **argv)
                     }
                 } break;
 
-                // case SDLK_KP_PLUS:
+                // TODO: add support for RGFW_kpPlus when RGFW 1.8.0 is released
+                // case RGFW_kpPlus:
                 case RGFW_equals: {
                     state.user_scale += SCALE_FACTOR * state.user_scale;
                 } break;
 
-                // case SDLK_KP_MINUS:
+                // TODO: add support for RGFW_kpMinus when RGFW 1.8.0 is released
+                // case RGFW_kpMinus:
                 case RGFW_minus: {
                     state.user_scale -= SCALE_FACTOR * state.user_scale;
                 } break;
 
-                // case SDLK_KP_0:
+                // TODO: add support for RGFW_kp0 when RGFW 1.8.0 is released
+                // case RGFW_kp0:
                 case RGFW_0: {
                     state.user_scale = 1.0f;
                 } break;
@@ -311,15 +314,14 @@ int main(int argc, char **argv)
                     }
                 } break;
 
-                // case RGFW_F11: {
-                //     Uint32 window_flags;
-                //     secc(window_flags = SDL_GetWindowFlags(window));
-                //     if(window_flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-                //         secc(SDL_SetWindowFullscreen(window, 0));
-                //     } else {
-                //         secc(SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP));
-                //     }
-                // } break;
+                case RGFW_F11: {
+                    RGFW_windowFlags window_flags = win->_flags; // TODO: use RGFW_window_getFlags() when RGFW 1.8.0 is released
+                    if (window_flags & RGFW_windowFullscreen) {
+                        RGFW_window_setFlags(win, window_flags & (~RGFW_windowFullscreen));
+                    } else {
+                        RGFW_window_setFlags(win, window_flags | RGFW_windowFullscreen);
+                    }
+                } break;
                 }
             } break;
             }
@@ -335,7 +337,7 @@ int main(int argc, char **argv)
             // PENGER BEGIN //////////////////////////////
 
             #ifdef PENGER
-                render_penger_at(penger_tex_unit, win->r.w, win->r.h, state.displayed_time, state.mode==MODE_COUNTDOWN);
+            render_penger_at(penger_tex_unit, win->r.w, win->r.h, state.displayed_time, state.mode==MODE_COUNTDOWN);
             #endif
 
             // PENGER END //////////////////////////////
@@ -361,7 +363,7 @@ int main(int argc, char **argv)
             render_digit_at(digits_tex_unit, seconds % 10, (state.wiggle_index + 5) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
 
             char title[TITLE_CAP];
-            snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
+            snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon (RGFW)", hours, minutes, seconds);
             if (strcmp(state.prev_title, title) != 0) {
                 RGFW_window_setName(win, title);
             }
