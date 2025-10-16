@@ -89,17 +89,24 @@ bool link_program(GLuint vert_shader, GLuint frag_shader, GLuint *program)
 
         glGetProgramInfoLog(*program, sizeof(message), &message_size, message);
         fprintf(stderr, "Program Linking: %.*s\n", message_size, message);
+        return false;
     }
 
     glDeleteShader(vert_shader);
     glDeleteShader(frag_shader);
 
-    return program;
+    return true;
 }
 
-GLuint load_image_data_as_gl_texture(uint32_t *data, size_t width, size_t height)
+
+GLint load_image_data_as_gl_texture(uint32_t *data, size_t width, size_t height)
 {
-    GLuint texture = 0;
+    static GLint texture_units_count = 0;
+    if (texture_units_count >= GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) return -1;
+
+    GLint texture_unit = texture_units_count++;
+    GLuint texture;
+    glActiveTexture(GL_TEXTURE0 + texture_unit);
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -117,7 +124,7 @@ GLuint load_image_data_as_gl_texture(uint32_t *data, size_t width, size_t height
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
                  data);
-    return texture;
+    return texture_unit;
 }
 
 GLint tex_uni;
@@ -141,7 +148,7 @@ void texture_copy(GLint texture_unit, int tex_width, int tex_height, RGFW_rect s
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void render_digit_at(size_t digit_index, size_t wiggle_index, int *pen_x, int *pen_y, float user_scale, float fit_scale)
+void render_digit_at(GLint digits_tex_unit, size_t digit_index, size_t wiggle_index, int *pen_x, int *pen_y, float user_scale, float fit_scale)
 {
     const int effective_digit_width = (int) floorf((float) CHAR_WIDTH * user_scale * fit_scale);
     const int effective_digit_height = (int) floorf((float) CHAR_HEIGHT * user_scale * fit_scale);
@@ -159,13 +166,13 @@ void render_digit_at(size_t digit_index, size_t wiggle_index, int *pen_x, int *p
         effective_digit_height
     };
 
-    texture_copy(0, digits_width, digits_height, src_rect, dst_rect);
+    texture_copy(digits_tex_unit, digits_width, digits_height, src_rect, dst_rect);
 
     *pen_x += effective_digit_width;
 }
 
 #ifdef PENGER
-void render_penger_at(int window_width, int window_height, float time, int flipped)
+void render_penger_at(GLint penger_tex_unit, int window_width, int window_height, float time, int flipped)
 {
     int sps  = PENGER_STEPS_PER_SECOND;
 
@@ -197,7 +204,7 @@ void render_penger_at(int window_width, int window_height, float time, int flipp
         src_rect.x += src_rect.w;
         src_rect.w *= -1;
     }
-    texture_copy(1, penger_width, penger_height, src_rect, dst_rect);
+    texture_copy(penger_tex_unit, penger_width, penger_height, src_rect, dst_rect);
 }
 #endif
 
@@ -239,10 +246,8 @@ int main(int argc, char **argv)
     glUniform4f(src_rect_uni, 0, 0, CHAR_WIDTH, CHAR_HEIGHT);
     glUniform2f(tex_size_uni, digits_width, digits_height);
 
-    glActiveTexture(GL_TEXTURE0);
-    load_image_data_as_gl_texture(digits_data, digits_width, digits_height);
-    glActiveTexture(GL_TEXTURE1);
-    load_image_data_as_gl_texture(penger_data, penger_width, penger_height);
+    GLint digits_tex_unit = load_image_data_as_gl_texture(digits_data, digits_width, digits_height);
+    GLint penger_tex_unit = load_image_data_as_gl_texture(penger_data, penger_width, penger_height);
 
     set_texture_color_mod(MAIN_COLOR_R/255.0f, MAIN_COLOR_G/255.0f, MAIN_COLOR_B/255.0f);
     if (state.paused) {
@@ -330,7 +335,7 @@ int main(int argc, char **argv)
             // PENGER BEGIN //////////////////////////////
 
             #ifdef PENGER
-                render_penger_at(win->r.w, win->r.h, state.displayed_time, state.mode==MODE_COUNTDOWN);
+                render_penger_at(penger_tex_unit, win->r.w, win->r.h, state.displayed_time, state.mode==MODE_COUNTDOWN);
             #endif
 
             // PENGER END //////////////////////////////
@@ -342,18 +347,18 @@ int main(int argc, char **argv)
 
             // TODO: support amount of hours >99
             const size_t hours = t / 60 / 60;
-            render_digit_at(hours / 10,   state.wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
-            render_digit_at(hours % 10,  (state.wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
-            render_digit_at(COLON_INDEX,  state.wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(digits_tex_unit, hours / 10,   state.wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(digits_tex_unit, hours % 10,  (state.wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(digits_tex_unit, COLON_INDEX,  state.wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
 
             const size_t minutes = t / 60 % 60;
-            render_digit_at(minutes / 10, (state.wiggle_index + 2) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
-            render_digit_at(minutes % 10, (state.wiggle_index + 3) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
-            render_digit_at(COLON_INDEX,  (state.wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(digits_tex_unit, minutes / 10, (state.wiggle_index + 2) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(digits_tex_unit, minutes % 10, (state.wiggle_index + 3) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(digits_tex_unit, COLON_INDEX,  (state.wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
 
             const size_t seconds = t % 60;
-            render_digit_at(seconds / 10, (state.wiggle_index + 4) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
-            render_digit_at(seconds % 10, (state.wiggle_index + 5) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(digits_tex_unit, seconds / 10, (state.wiggle_index + 4) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(digits_tex_unit, seconds % 10, (state.wiggle_index + 5) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
 
             char title[TITLE_CAP];
             snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);

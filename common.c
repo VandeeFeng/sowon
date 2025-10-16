@@ -22,6 +22,7 @@
 #define PENGER_STEPS_PER_SECOND 3
 #define PENGER_SCALE 4
 #define SCALE_FACTOR 0.15f
+#define TITLE_CAP 256
 
 typedef enum {
     MODE_ASCENDING = 0,
@@ -58,8 +59,6 @@ float parse_time(const char *time)
 
     return result;
 }
-
-#define TITLE_CAP 256
 
 typedef struct {
     Mode mode;
