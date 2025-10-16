@@ -1,4 +1,4 @@
-COMMON_CFLAGS=		-Wall -Wextra -std=c99 -pedantic
+COMMON_CFLAGS=		-Wall -Wextra -std=c99 -pedantic -DPENGER
 CFLAGS+=		`pkg-config --cflags sdl2` $(COMMON_CFLAGS)
 COMMON_LIBS=		-lm
 LIBS=			`pkg-config --libs sdl2` $(COMMON_LIBS)
@@ -6,7 +6,10 @@ PREFIX?=		/usr/local
 INSTALL?=		install
 
 .PHONY: all
-all: Makefile sowon man
+all: Makefile sowon sowon_rgfw man
+
+sowon_rgfw: main_rgfw.c digits.h penger_walk_sheet.h
+	$(CC) $(COMMON_CFLAGS) -o sowon_rgfw main_rgfw.c $(COMMON_LIBS) -lX11 -lXrandr -lGLX -lGL
 
 sowon: main.c digits.h penger_walk_sheet.h
 	$(CC) $(CFLAGS) -o sowon main.c $(LIBS)

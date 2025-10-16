@@ -22,21 +22,9 @@
 #define CHARS_COUNT 8
 #define TEXT_WIDTH (CHAR_WIDTH * CHARS_COUNT)
 #define TEXT_HEIGHT (CHAR_HEIGHT)
-#define WIGGLE_COUNT 3
-#define WIGGLE_DURATION (0.40f / WIGGLE_COUNT)
 #define COLON_INDEX 10
-#define MAIN_COLOR_R 220
-#define MAIN_COLOR_G 220
-#define MAIN_COLOR_B 220
-#define PAUSE_COLOR_R 220
-#define PAUSE_COLOR_G 120
-#define PAUSE_COLOR_B 120
-#define BACKGROUND_COLOR_R 24
-#define BACKGROUND_COLOR_G 24
-#define BACKGROUND_COLOR_B 24
-#define SCALE_FACTOR 0.15f
-#define PENGER_SCALE 4
-#define PENGER_STEPS_PER_SECOND 3
+
+#include "common.c"
 
 void secc(int code)
 {
@@ -115,11 +103,11 @@ void render_penger_at(SDL_Renderer *renderer, SDL_Texture *penger, float time, i
     SDL_GetWindowSize(window, &window_width, &window_height);
 
     int sps  = PENGER_STEPS_PER_SECOND;
-    
+
     int step = (int)(time*sps)%(60*sps); //step index [0,60*sps-1]
 
     float progress  = step/(60.0*sps); // [0,1]
-    
+
     int frame_index = step%2;
 
     float penger_drawn_width = ((float)penger_width / 2) / PENGER_SCALE;
@@ -143,61 +131,6 @@ void render_penger_at(SDL_Renderer *renderer, SDL_Texture *penger, float time, i
     SDL_RenderCopyEx(renderer, penger, &src_rect, &dst_rect, 0, NULL, flipped);
 }
 #endif
-
-void initial_pen(SDL_Window *window, int *pen_x, int *pen_y, float user_scale, float *fit_scale)
-{
-    int w, h;
-    SDL_GetWindowSize(window, &w, &h);
-
-    float text_aspect_ratio = (float) TEXT_WIDTH / (float) TEXT_HEIGHT;
-    float window_aspect_ratio = (float) w / (float) h;
-    if(text_aspect_ratio > window_aspect_ratio) {
-        *fit_scale = (float) w / (float) TEXT_WIDTH;
-    } else {
-        *fit_scale = (float) h / (float) TEXT_HEIGHT;
-    }
-
-    const int effective_digit_width = (int) floorf((float) CHAR_WIDTH * user_scale * *fit_scale);
-    const int effective_digit_height = (int) floorf((float) CHAR_HEIGHT * user_scale * *fit_scale);
-    *pen_x = w / 2 - effective_digit_width * CHARS_COUNT / 2;
-    *pen_y = h / 2 - effective_digit_height / 2;
-}
-
-typedef enum {
-    MODE_ASCENDING = 0,
-    MODE_COUNTDOWN,
-    MODE_CLOCK,
-} Mode;
-
-float parse_time(const char *time)
-{
-    float result = 0.0f;
-
-    while (*time) {
-        char *endptr = NULL;
-        float x = strtof(time, &endptr);
-
-        if (time == endptr) {
-            fprintf(stderr, "`%s` is not a number\n", time);
-            exit(1);
-        }
-
-        switch (*endptr) {
-        case '\0':
-        case 's': result += x;                 break;
-        case 'm': result += x * 60.0f;         break;
-        case 'h': result += x * 60.0f * 60.0f; break;
-        default:
-            fprintf(stderr, "`%c` is an unknown time unit\n", *endptr);
-            exit(1);
-        }
-
-        time = endptr;
-        if (*time) time += 1;
-    }
-
-    return result;
-}
 
 typedef struct {
     Uint32 frame_delay;
@@ -234,27 +167,10 @@ void frame_end(FpsDeltaTime *fpsdt)
     }
 }
 
-#define TITLE_CAP 256
-
 int main(int argc, char **argv)
 {
-    Mode mode = MODE_ASCENDING;
-    float displayed_time = 0.0f;
-    int paused = 0;
-    int exit_after_countdown = 0;
-
-    for (int i = 1; i < argc; ++i) {
-        if (strcmp(argv[i], "-p") == 0) {
-            paused = 1;
-        } else if (strcmp(argv[i], "-e") == 0) {
-            exit_after_countdown = 1;
-        } else if (strcmp(argv[i], "clock") == 0) {
-            mode = MODE_CLOCK;
-        } else {
-            mode = MODE_COUNTDOWN;
-            displayed_time = parse_time(argv[i]);
-        }
-    }
+    State state = {0};
+    parse_state_from_args(&state, argc, argv);
 
     secc(SDL_Init(SDL_INIT_VIDEO));
 
@@ -280,33 +196,28 @@ int main(int argc, char **argv)
 
     secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
 
-    if (paused) {
+    if (state.paused) {
         secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
     } else {
         secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
     }
 
-    int quit = 0;
-    size_t wiggle_index = 0;
-    float wiggle_cooldown = WIGGLE_DURATION;
-    float user_scale = 1.0f;
-    char prev_title[TITLE_CAP];
     FpsDeltaTime fps_dt = make_fpsdeltatime(FPS);
-    while (!quit) {
+    while (!state.quit) {
         frame_start(&fps_dt);
         // INPUT BEGIN //////////////////////////////
         SDL_Event event = {0};
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
             case SDL_QUIT: {
-                quit = 1;
+                state.quit = 1;
             } break;
 
             case SDL_KEYDOWN: {
                 switch (event.key.keysym.sym) {
                 case SDLK_SPACE: {
-                    paused = !paused;
-                    if (paused) {
+                    state.paused = !state.paused;
+                    if (state.paused) {
                         secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
                     } else {
                         secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
@@ -315,30 +226,30 @@ int main(int argc, char **argv)
 
                 case SDLK_KP_PLUS:
                 case SDLK_EQUALS: {
-                    user_scale += SCALE_FACTOR * user_scale;
+                    state.user_scale += SCALE_FACTOR * state.user_scale;
                 } break;
 
                 case SDLK_KP_MINUS:
                 case SDLK_MINUS: {
-                    user_scale -= SCALE_FACTOR * user_scale;
+                    state.user_scale -= SCALE_FACTOR * state.user_scale;
                 } break;
 
                 case SDLK_KP_0:
                 case SDLK_0: {
-                    user_scale = 1.0f;
+                    state.user_scale = 1.0f;
                 } break;
 
                 case SDLK_F5: {
-                    displayed_time = 0.0f;
-                    paused = 0;
+                    state.displayed_time = 0.0f;
+                    state.paused = 0;
                     for (int i = 1; i < argc; ++i) {
                         if (strcmp(argv[i], "-p") == 0) {
-                            paused = 1;
+                            state.paused = 1;
                         } else {
-                            displayed_time = parse_time(argv[i]);
+                            state.displayed_time = parse_time(argv[i]);
                         }
                     }
-                    if (paused) {
+                    if (state.paused) {
                         secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
                     } else {
                         secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
@@ -360,9 +271,9 @@ int main(int argc, char **argv)
             case SDL_MOUSEWHEEL: {
                 if (SDL_GetModState() & KMOD_CTRL) {
                     if (event.wheel.y > 0) {
-                        user_scale += SCALE_FACTOR * user_scale;
+                        state.user_scale += SCALE_FACTOR * state.user_scale;
                     } else if (event.wheel.y < 0) {
-                        user_scale -= SCALE_FACTOR * user_scale;
+                        state.user_scale -= SCALE_FACTOR * state.user_scale;
                     }
                 }
             } break;
@@ -376,11 +287,11 @@ int main(int argc, char **argv)
         SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 255);
         SDL_RenderClear(renderer);
         {
-            const size_t t = (size_t) floorf(fmaxf(displayed_time, 0.0f));
+            const size_t t = (size_t) floorf(fmaxf(state.displayed_time, 0.0f));
             // PENGER BEGIN //////////////////////////////
 
             #ifdef PENGER
-            render_penger_at(renderer, penger, displayed_time, mode==MODE_COUNTDOWN, window);
+            render_penger_at(renderer, penger, state.displayed_time, state.mode==MODE_COUNTDOWN, window);
             #endif
 
             // PENGER END //////////////////////////////
@@ -388,76 +299,38 @@ int main(int argc, char **argv)
             // DIGITS BEGIN //////////////////////////////
             int pen_x, pen_y;
             float fit_scale = 1.0;
-            initial_pen(window, &pen_x, &pen_y, user_scale, &fit_scale);
-
+            int w, h;
+            SDL_GetWindowSize(window, &w, &h);
+            initial_pen(w, h, &pen_x, &pen_y, state.user_scale, &fit_scale);
 
             // TODO: support amount of hours >99
             const size_t hours = t / 60 / 60;
-            render_digit_at(renderer, digits, hours / 10,   wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
-            render_digit_at(renderer, digits, hours % 10,  (wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
-            render_digit_at(renderer, digits, COLON_INDEX,  wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
+            render_digit_at(renderer, digits, hours / 10,   state.wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(renderer, digits, hours % 10,  (state.wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(renderer, digits, COLON_INDEX,  state.wiggle_index      % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
 
             const size_t minutes = t / 60 % 60;
-            render_digit_at(renderer, digits, minutes / 10, (wiggle_index + 2) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
-            render_digit_at(renderer, digits, minutes % 10, (wiggle_index + 3) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
-            render_digit_at(renderer, digits, COLON_INDEX,  (wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
+            render_digit_at(renderer, digits, minutes / 10, (state.wiggle_index + 2) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(renderer, digits, minutes % 10, (state.wiggle_index + 3) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(renderer, digits, COLON_INDEX,  (state.wiggle_index + 1) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
 
             const size_t seconds = t % 60;
-            render_digit_at(renderer, digits, seconds / 10, (wiggle_index + 4) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
-            render_digit_at(renderer, digits, seconds % 10, (wiggle_index + 5) % WIGGLE_COUNT, &pen_x, &pen_y, user_scale, fit_scale);
+            render_digit_at(renderer, digits, seconds / 10, (state.wiggle_index + 4) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
+            render_digit_at(renderer, digits, seconds % 10, (state.wiggle_index + 5) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
 
             char title[TITLE_CAP];
             snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon", hours, minutes, seconds);
-            if (strcmp(prev_title, title) != 0) {
+            if (strcmp(state.prev_title, title) != 0) {
                 SDL_SetWindowTitle(window, title);
             }
-            memcpy(title, prev_title, TITLE_CAP);
+            memcpy(title, state.prev_title, TITLE_CAP);
             // DIGITS END //////////////////////////////
         }
         SDL_RenderPresent(renderer);
         // RENDER END //////////////////////////////
 
         // UPDATE BEGIN //////////////////////////////
-        if (wiggle_cooldown <= 0.0f) {
-            wiggle_index++;
-            wiggle_cooldown = WIGGLE_DURATION;
-        }
-        wiggle_cooldown -= fps_dt.dt;
-
-        if (!paused) {
-            switch (mode) {
-            case MODE_ASCENDING: {
-                displayed_time += fps_dt.dt;
-            } break;
-            case MODE_COUNTDOWN: {
-                if (displayed_time > 1e-6) {
-                    displayed_time -= fps_dt.dt;
-                } else {
-                    displayed_time = 0.0f;
-                    if (exit_after_countdown) {
-                        SDL_Quit();
-                        return 0;
-                    }
-                }
-            } break;
-            case MODE_CLOCK: {
-                float displayed_time_prev = displayed_time;
-                time_t t = time(NULL);
-                struct tm *tm = localtime(&t);
-                displayed_time = tm->tm_sec
-                               + tm->tm_min  * 60.0f
-                               + tm->tm_hour * 60.0f * 60.0f;
-                if(displayed_time <= displayed_time_prev){
-                    //same second, keep previous count and add subsecond resolution for penger
-                    if(floorf(displayed_time_prev) == floorf(displayed_time_prev+fps_dt.dt)){ //check for no newsecond shenaningans from dt
-                        displayed_time = displayed_time_prev + fps_dt.dt; 
-                    }else{
-                        displayed_time = displayed_time_prev;
-                    }
-                }
-            } break;
-            }
-        }
+        state_update(&state, fps_dt.dt);
         // UPDATE END //////////////////////////////
 
         frame_end(&fps_dt);
