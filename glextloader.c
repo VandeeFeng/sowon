@@ -41,11 +41,15 @@
 PROCS
 #undef PROC
 
-static void load_gl_extensions(void)
+static bool load_gl_extensions(void)
 {
-    // TODO: check for failtures?
-    // Maybe some of the functions are not available
-    #define PROC(type, name) name = (type) RGFW_getProcAddress(#name);
+    #define PROC(type, name) \
+        name = (type) RGFW_getProcAddress(#name); \
+        if (name == NULL) { \
+            fprintf(stderr, "ERROR: could not load function %s\n", #name); \
+            return false; \
+        }
     PROCS
     #undef PROC
+    return true;
 }

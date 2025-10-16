@@ -214,7 +214,7 @@ int main(int argc, char **argv)
     RGFW_rect win_rect = RGFW_RECT(0, 0, TEXT_WIDTH, TEXT_HEIGHT*2);
     RGFW_window* win = RGFW_createWindow("sowon", win_rect, (u64)0);
 
-    load_gl_extensions();
+    if (!load_gl_extensions()) return 1;
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
