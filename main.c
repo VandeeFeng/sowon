@@ -7,23 +7,6 @@
 
 #include <SDL2/SDL.h>
 
-#include "./digits.h"
-
-#ifdef PENGER
-#include "./penger_walk_sheet.h"
-#endif
-
-#define FPS 60
-//#define DELTA_TIME (1.0f / FPS)
-#define SPRITE_CHAR_WIDTH (300 / 2)
-#define SPRITE_CHAR_HEIGHT (380 / 2)
-#define CHAR_WIDTH (300 / 2)
-#define CHAR_HEIGHT (380 / 2)
-#define CHARS_COUNT 8
-#define TEXT_WIDTH (CHAR_WIDTH * CHARS_COUNT)
-#define TEXT_HEIGHT (CHAR_HEIGHT)
-#define COLON_INDEX 10
-
 #include "common.c"
 
 void secc(int code)

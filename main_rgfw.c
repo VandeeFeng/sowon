@@ -4,12 +4,9 @@
 #include "RGFW.h"
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glext.h>
-
-#include "digits.h"
-#include "penger_walk_sheet.h"
+#include "glextloader.c"
 
 #include "common.c"
-#include "glextloader.c"
 
 const char *vert_shader =
     "#version 330\n"

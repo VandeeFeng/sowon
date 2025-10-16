@@ -1,5 +1,12 @@
+#include "./digits.h"
+
+#ifdef PENGER
+#include "./penger_walk_sheet.h"
+#endif
+
 #include <math.h>
 
+#define FPS 60
 #define COLON_INDEX 10
 #define SPRITE_CHAR_WIDTH (300 / 2)
 #define SPRITE_CHAR_HEIGHT (380 / 2)
