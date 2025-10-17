@@ -285,7 +285,7 @@ int main(int argc, char **argv)
         // UPDATE END //////////////////////////////
 
         now = SDL_GetPerformanceCounter();
-        Uint32 frame_time = ((now - last_time)*1000.0f)/SDL_GetPerformanceFrequency();
+        Uint32 frame_time = (Uint32)(((now - last_time)*1000.0f)/SDL_GetPerformanceFrequency());
         Uint32 frame_cap = 1000/FPS;
         if (frame_time < frame_cap) SDL_Delay(frame_cap - frame_time);
     }
