@@ -115,41 +115,6 @@ void render_penger_at(SDL_Renderer *renderer, SDL_Texture *penger, float time, i
 }
 #endif
 
-typedef struct {
-    Uint32 frame_delay;
-    float dt;
-    Uint64 last_time;
-} FpsDeltaTime;
-
-FpsDeltaTime make_fpsdeltatime(const Uint32 fps_cap)
-{
-    return (FpsDeltaTime){
-        .frame_delay=(1000 / fps_cap),
-        .dt=0.0f,
-        .last_time=SDL_GetPerformanceCounter(),
-    };
-}
-
-void frame_start(FpsDeltaTime *fpsdt)
-{
-    const Uint64 now = SDL_GetPerformanceCounter();
-    const Uint64 elapsed = now - fpsdt->last_time;
-    fpsdt->dt = ((float)elapsed)  / ((float)SDL_GetPerformanceFrequency());
-    // printf("FPS: %f | dt %f\n", 1.0 / fpsdt->dt, fpsdt->dt);
-    fpsdt->last_time = now;
-}
-
-void frame_end(FpsDeltaTime *fpsdt)
-{
-    const Uint64 now = SDL_GetPerformanceCounter();
-    const Uint64 elapsed = now - fpsdt->last_time;
-    const Uint32 cap_frame_end = (Uint32) ((((float)elapsed) * 1000.0f) / ((float)SDL_GetPerformanceFrequency()));
-
-    if (cap_frame_end < fpsdt->frame_delay) {
-        SDL_Delay((fpsdt->frame_delay - cap_frame_end) );
-    }
-}
-
 int main(int argc, char **argv)
 {
     State state = {0};
@@ -185,9 +150,12 @@ int main(int argc, char **argv)
         secc(SDL_SetTextureColorMod(digits, MAIN_COLOR_R, MAIN_COLOR_G, MAIN_COLOR_B));
     }
 
-    FpsDeltaTime fps_dt = make_fpsdeltatime(FPS);
+    uint64_t last_time = SDL_GetPerformanceCounter();
     while (!state.quit) {
-        frame_start(&fps_dt);
+        uint64_t now = SDL_GetPerformanceCounter();
+        float dt = (float)(now - last_time)/SDL_GetPerformanceFrequency();
+        last_time = now;
+
         // INPUT BEGIN //////////////////////////////
         SDL_Event event = {0};
         while (SDL_PollEvent(&event)) {
@@ -313,10 +281,13 @@ int main(int argc, char **argv)
         // RENDER END //////////////////////////////
 
         // UPDATE BEGIN //////////////////////////////
-        state_update(&state, fps_dt.dt);
+        state_update(&state, dt);
         // UPDATE END //////////////////////////////
 
-        frame_end(&fps_dt);
+        now = SDL_GetPerformanceCounter();
+        Uint32 frame_time = ((now - last_time)*1000.0f)/SDL_GetPerformanceFrequency();
+        Uint32 frame_cap = 1000/FPS;
+        if (frame_time < frame_cap) SDL_Delay(frame_cap - frame_time);
     }
 
     SDL_Quit();

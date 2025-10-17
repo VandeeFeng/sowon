@@ -112,6 +112,13 @@ void state_update(State *state, float dt)
     if (!state->paused) {
         switch (state->mode) {
         case MODE_ASCENDING: {
+            // TODOOOOO: display_time should not depend on `dt` AT ALL!
+            //
+            // Capture some sort of timestamp from the start of the application, and depending on the mode
+            // display the time relative to the start accordingly. That way the timer is alway accurate
+            // regardless of the FPS.
+            //
+            // Maybe even wiggle animation should not depend on the `dt`.
             state->displayed_time += dt;
         } break;
         case MODE_COUNTDOWN: {
