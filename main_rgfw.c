@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
+#define GL_GLEXT_PROTOTYPES
 #ifndef __APPLE__
     #include <GL/glext.h>
 #else
