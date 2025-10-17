@@ -105,6 +105,7 @@ typedef ptrdiff_t GLsizeiptr;
 #define GL_STATIC_DRAW  0x88E4
 #define GL_DYNAMIC_DRAW 0x88E8
 #define GL_TEXTURE0 0x84C0
+#define GL_CLAMP_TO_BORDER 0x812D
 #endif
 
 #include <stddef.h>
