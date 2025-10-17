@@ -19,7 +19,9 @@
 
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
-#include "glextloader.c"
+// #include "glextloader.c"
+#define RGL_LOAD_IMPLEMENTATION
+#include "rglLoad.h"
 
 #include "common.c"
 
@@ -233,7 +235,8 @@ int main(int argc, char **argv)
     RGFW_rect win_rect = RGFW_RECT(0, 0, TEXT_WIDTH, TEXT_HEIGHT*2);
     RGFW_window* win = RGFW_createWindow("sowon (RGFW)", win_rect, 0);
 
-    if (!load_gl_extensions()) return 1;
+    if (RGL_loadGL3((RGLloadfunc)RGFW_getProcAddress)) return 1;
+    // if (!load_gl_extensions()) return 1;
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
