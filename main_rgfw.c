@@ -257,7 +257,12 @@ int main(int argc, char **argv)
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
+    uint64_t last_time = RGFW_getTimerValue();
     while (RGFW_window_shouldClose(win) == RGFW_FALSE) {
+        uint64_t now = RGFW_getTimerValue();
+        float dt = (float)(now - last_time)/RGFW_getTimerFreq();
+        last_time = now;
+
         // INPUT BEGIN //////////////////////////////
         while (RGFW_window_checkEvent(win)) {
             switch (win->event.type) {
@@ -381,8 +386,13 @@ int main(int argc, char **argv)
         // RENDER END //////////////////////////////
 
         // UPDATE BEGIN //////////////////////////////
-        state_update(&state, 0.016/*fps_dt.dt*/);
+        state_update(&state, dt);
         // UPDATE END //////////////////////////////
+
+        now = RGFW_getTimerValue();
+        uint64_t frame_time = ((now - last_time)*1000.0f)/RGFW_getTimerFreq();
+        uint64_t frame_cap = 1000/FPS;
+        if (frame_time < frame_cap) RGFW_sleep(frame_cap - frame_time);
     }
 
     RGFW_window_close(win);
