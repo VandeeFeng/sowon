@@ -1,5 +1,9 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <assert.h>
 #include <stdio.h>
-#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
