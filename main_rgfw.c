@@ -1,5 +1,22 @@
 #include <stdio.h>
 #include <stdbool.h>
+
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#endif
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define OEMRESOURCE
+#include <windows.h>
+#endif
+
+#ifndef __APPLE__
+#include <GL/gl.h>
+#else
+#include <OpenGL/gl.h>
+#endif
+
 #define RGFW_IMPLEMENTATION
 #include "RGFW.h"
 #include "glextloader.c"
