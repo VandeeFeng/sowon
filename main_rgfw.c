@@ -266,7 +266,9 @@ int main(int argc, char **argv)
     glUniform2f(tex_size_uni, digits_width, digits_height);
 
     GLint digits_tex_unit = load_image_data_as_gl_texture(digits_data, digits_width, digits_height);
+    #ifdef PENGER
     GLint penger_tex_unit = load_image_data_as_gl_texture(penger_data, penger_width, penger_height);
+    #endif
 
     set_texture_color_mod(MAIN_COLOR_R/255.0f, MAIN_COLOR_G/255.0f, MAIN_COLOR_B/255.0f);
     if (state.paused) {
