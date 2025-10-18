@@ -191,15 +191,7 @@ int main(int argc, char **argv)
                 } break;
 
                 case SDLK_F5: {
-                    state.displayed_time = 0.0f;
-                    state.paused = 0;
-                    for (int i = 1; i < argc; ++i) {
-                        if (strcmp(argv[i], "-p") == 0) {
-                            state.paused = 1;
-                        } else {
-                            state.displayed_time = parse_time(argv[i]);
-                        }
-                    }
+                    parse_state_from_args(&state, argc, argv);
                     if (state.paused) {
                         secc(SDL_SetTextureColorMod(digits, PAUSE_COLOR_R, PAUSE_COLOR_G, PAUSE_COLOR_B));
                     } else {
