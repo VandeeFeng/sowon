@@ -115,82 +115,46 @@ typedef ptrdiff_t GLsizeiptr;
 typedef void (*RGLapiproc)(void);
 typedef RGLapiproc (*RGLloadfunc)(const char *name);
 
-typedef void (*glShaderSourcePROC) (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
-typedef GLuint (*glCreateShaderPROC) (GLenum type);
-typedef void (*glCompileShaderPROC) (GLuint shader);
-typedef GLuint (*glCreateProgramPROC) (void);
-typedef void (*glAttachShaderPROC) (GLuint program, GLuint shader);
-typedef void (*glBindAttribLocationPROC) (GLuint program, GLuint index, const GLchar *name);
-typedef void (*glLinkProgramPROC) (GLuint program);
-typedef void (*glBindBufferPROC) (GLenum target, GLuint buffer);
-typedef void (*glBufferDataPROC) (GLenum target, GLsizeiptr size, const void *data, GLenum usage);
-typedef void (*glEnableVertexAttribArrayPROC) (GLuint index);
-typedef void (*glVertexAttribPointerPROC) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
-typedef void (*glDisableVertexAttribArrayPROC) (GLuint index);
-typedef void (*glDeleteBuffersPROC) (GLsizei n, const GLuint *buffers);
-typedef void (*glDeleteVertexArraysPROC) (GLsizei n, const GLuint *arrays);
-typedef void (*glUseProgramPROC) (GLuint program);
-typedef void (*glDetachShaderPROC) (GLuint program, GLuint shader);
-typedef void (*glDeleteShaderPROC) (GLuint shader);
-typedef void (*glDeleteProgramPROC) (GLuint program);
-typedef void (*glBufferSubDataPROC) (GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
-typedef void (*glGetShaderivPROC)(GLuint shader, GLenum pname, GLint *params);
-typedef void (*glGetShaderInfoLogPROC)(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-typedef void (*glGetProgramivPROC)(GLuint program, GLenum pname, GLint *params);
-typedef void (*glGetProgramInfoLogPROC)(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog);
-typedef void (*glGenVertexArraysPROC)(GLsizei n, GLuint *arrays);
-typedef void (*glGenBuffersPROC)(GLsizei n, GLuint *buffers);
-typedef void (*glBindVertexArrayPROC)(GLuint array);
-typedef GLint (*glGetUniformLocationPROC)(GLuint program, const GLchar *name);
-typedef void (*glUniformMatrix4fvPROC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (*glTexImage2DPROC)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
-typedef void (*glActiveTexturePROC) (GLenum texture);
-typedef void (*glDebugMessageCallbackPROC)(void* callback, const void*);
-typedef void (*glDrawElementsPROC)(GLenum mode, GLsizei count, GLenum type, const void * indices);
-typedef void (*glClearPROC)(GLbitfield mask);
-typedef void (*glClearColorPROC)(GLfloat, GLfloat, GLfloat, GLfloat);
-typedef void (*glUniform2fPROC)(GLint location, GLfloat v0, GLfloat v1);
-typedef void (*glUniform4fPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
-typedef void (*glUniform1iPROC)(GLint location, GLint v0);
+#define PROCS \
+    PROC(void, glShaderSource, GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length) \
+    PROC(GLuint, glCreateShader, GLenum type) \
+    PROC(void, glCompileShader, GLuint shader) \
+    PROC(GLuint, glCreateProgram, void) \
+    PROC(void, glAttachShader, GLuint program, GLuint shader) \
+    PROC(void, glBindAttribLocation, GLuint program, GLuint index, const GLchar *name) \
+    PROC(void, glLinkProgram, GLuint program) \
+    PROC(void, glBindBuffer, GLenum target, GLuint buffer) \
+    PROC(void, glBufferData, GLenum target, GLsizeiptr size, const void *data, GLenum usage) \
+    PROC(void, glEnableVertexAttribArray, GLuint index) \
+    PROC(void, glVertexAttribPointer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer) \
+    PROC(void, glDisableVertexAttribArray, GLuint index) \
+    PROC(void, glDeleteBuffers, GLsizei n, const GLuint *buffers) \
+    PROC(void, glDeleteVertexArrays, GLsizei n, const GLuint *arrays) \
+    PROC(void, glUseProgram, GLuint program) \
+    PROC(void, glDetachShader, GLuint program, GLuint shader) \
+    PROC(void, glDeleteShader, GLuint shader) \
+    PROC(void, glDeleteProgram, GLuint program) \
+    PROC(void, glBufferSubData, GLenum target, GLintptr offset, GLsizeiptr size, const void *data) \
+    PROC(void, glGetShaderiv, GLuint shader, GLenum pname, GLint *params) \
+    PROC(void, glGetShaderInfoLog, GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog) \
+    PROC(void, glGetProgramiv, GLuint program, GLenum pname, GLint *params) \
+    PROC(void, glGetProgramInfoLog, GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog) \
+    PROC(void, glGenVertexArrays, GLsizei n, GLuint *arrays) \
+    PROC(void, glGenBuffers, GLsizei n, GLuint *buffers) \
+    PROC(void, glBindVertexArray, GLuint array) \
+    PROC(GLint, glGetUniformLocation, GLuint program, const GLchar *name) \
+    PROC(void, glUniformMatrix4fv, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) \
+    PROC(void, glTexImage2D, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels) \
+    PROC(void, glActiveTexture, GLenum texture) \
+    PROC(void, glDebugMessageCallback, void* callback, const void*) \
+    PROC(void, glDrawElements, GLenum mode, GLsizei count, GLenum type, const void * indices) \
+    PROC(void, glClear, GLbitfield mask) \
+    PROC(void, glClearColor, GLfloat, GLfloat, GLfloat, GLfloat) \
+    PROC(void, glUniform2f, GLint location, GLfloat v0, GLfloat v1) \
+    PROC(void, glUniform4f, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) \
+    PROC(void, glUniform1i, GLint location, GLint v0)
 
-glShaderSourcePROC glShaderSourceSRC = NULL;
-glCreateShaderPROC glCreateShaderSRC = NULL;
-glCompileShaderPROC glCompileShaderSRC = NULL;
-glCreateProgramPROC glCreateProgramSRC = NULL;
-glAttachShaderPROC glAttachShaderSRC = NULL;
-glBindAttribLocationPROC glBindAttribLocationSRC = NULL;
-glLinkProgramPROC glLinkProgramSRC = NULL;
-glBindBufferPROC glBindBufferSRC = NULL;
-glBufferDataPROC glBufferDataSRC = NULL;
-glEnableVertexAttribArrayPROC glEnableVertexAttribArraySRC = NULL;
-glVertexAttribPointerPROC glVertexAttribPointerSRC = NULL;
-glDisableVertexAttribArrayPROC glDisableVertexAttribArraySRC = NULL;
-glDeleteBuffersPROC glDeleteBuffersSRC = NULL;
-glDeleteVertexArraysPROC glDeleteVertexArraysSRC = NULL;
-glUseProgramPROC glUseProgramSRC = NULL;
-glDetachShaderPROC glDetachShaderSRC = NULL;
-glDeleteShaderPROC glDeleteShaderSRC = NULL;
-glDeleteProgramPROC glDeleteProgramSRC = NULL;
-glBufferSubDataPROC glBufferSubDataSRC = NULL;
-glGetShaderivPROC glGetShaderivSRC = NULL;
-glGetShaderInfoLogPROC glGetShaderInfoLogSRC = NULL;
-glGetProgramivPROC glGetProgramivSRC = NULL;
-glGetProgramInfoLogPROC glGetProgramInfoLogSRC = NULL;
-glGenVertexArraysPROC glGenVertexArraysSRC = NULL;
-glGenBuffersPROC glGenBuffersSRC = NULL;
-glBindVertexArrayPROC glBindVertexArraySRC = NULL;
-glGetUniformLocationPROC glGetUniformLocationSRC = NULL;
-glUniformMatrix4fvPROC glUniformMatrix4fvSRC = NULL;
-glActiveTexturePROC glActiveTextureSRC = NULL;
-glDebugMessageCallbackPROC glDebugMessageCallbackSRC = NULL;
-glDrawElementsPROC glDrawElementsSRC = NULL;
-glClearPROC glClearSRC = NULL;
-glClearColorPROC glClearColorSRC = NULL;
-glUniform4fPROC glUniform4fSRC = NULL;
-glUniform2fPROC glUniform2fSRC = NULL;
-glUniform1iPROC glUniform1iSRC = NULL;
-
-#define glActiveTexture glActiveTextureSRC
+// I wish I could generate these defines with the X-macro too...
 #define glShaderSource glShaderSourceSRC
 #define glCreateShader glCreateShaderSRC
 #define glCompileShader glCompileShaderSRC
@@ -219,99 +183,42 @@ glUniform1iPROC glUniform1iSRC = NULL;
 #define glBindVertexArray glBindVertexArraySRC
 #define glGetUniformLocation glGetUniformLocationSRC
 #define glUniformMatrix4fv glUniformMatrix4fvSRC
+#define glTexImage2D glTexImage2DSRC
+#define glActiveTexture glActiveTextureSRC
 #define glDebugMessageCallback glDebugMessageCallbackSRC
 #define glDrawElements glDrawElementsSRC
 #define glClear glClearSRC
 #define glClearColor glClearColorSRC
-#define glUniform4f glUniform4fSRC
 #define glUniform2f glUniform2fSRC
+#define glUniform4f glUniform4fSRC
 #define glUniform1i glUniform1iSRC
 
-extern int RGL_loadGL3(RGLloadfunc proc);
+#define PROC(ret, name, ...) typedef ret (*name##PROC)(__VA_ARGS__);
+PROCS
+#undef PROC
 
-#include <stdio.h>
+#define PROC(ret, name, ...) name##PROC name##SRC = NULL;
+PROCS
+#undef PROC
 
-const GLubyte * gluErrorString(	GLenum error);
+int RGL_loadGL3(RGLloadfunc proc);
+
+#endif // RGL_H
 
 #ifdef RGL_LOAD_IMPLEMENTATION
 int RGL_loadGL3(RGLloadfunc proc) {
-    RGL_PROC_DEF(proc, glShaderSource);
-    RGL_PROC_DEF(proc, glCreateShader);
-    RGL_PROC_DEF(proc, glCompileShader);
-    RGL_PROC_DEF(proc, glCreateProgram);
-    RGL_PROC_DEF(proc, glAttachShader);
-    RGL_PROC_DEF(proc, glBindAttribLocation);
-    RGL_PROC_DEF(proc, glLinkProgram);
-    RGL_PROC_DEF(proc, glBindBuffer);
-    RGL_PROC_DEF(proc, glBufferData);
-    RGL_PROC_DEF(proc, glEnableVertexAttribArray);
-    RGL_PROC_DEF(proc, glVertexAttribPointer);
-    RGL_PROC_DEF(proc, glDisableVertexAttribArray);
-    RGL_PROC_DEF(proc, glDeleteBuffers);
-    RGL_PROC_DEF(proc, glDeleteVertexArrays);
-    RGL_PROC_DEF(proc, glUseProgram);
-    RGL_PROC_DEF(proc, glDetachShader);
-    RGL_PROC_DEF(proc, glDeleteShader);
-    RGL_PROC_DEF(proc, glDeleteProgram);
-    RGL_PROC_DEF(proc, glBufferSubData);
-    RGL_PROC_DEF(proc, glGetShaderiv);
-    RGL_PROC_DEF(proc, glGetShaderInfoLog);
-    RGL_PROC_DEF(proc, glGetProgramiv);
-    RGL_PROC_DEF(proc, glGetProgramInfoLog);
-    RGL_PROC_DEF(proc, glGenVertexArrays);
-    RGL_PROC_DEF(proc, glGenBuffers);
-    RGL_PROC_DEF(proc, glBindVertexArray);
-    RGL_PROC_DEF(proc, glGetUniformLocation);
-    RGL_PROC_DEF(proc, glUniformMatrix4fv);
-    RGL_PROC_DEF(proc, glActiveTexture);
-    RGL_PROC_DEF(proc, glDebugMessageCallback);
-    RGL_PROC_DEF(proc, glDrawElements);
-    RGL_PROC_DEF(proc, glClear);
-    RGL_PROC_DEF(proc, glClearColor);
-    RGL_PROC_DEF(proc, glUniform2f);
-    RGL_PROC_DEF(proc, glUniform4f);
-    RGL_PROC_DEF(proc, glUniform1i);
-
-    if (
-        glShaderSourceSRC == NULL ||
-        glCreateShaderSRC == NULL ||
-        glCompileShaderSRC == NULL ||
-        glCreateProgramSRC == NULL ||
-        glAttachShaderSRC == NULL ||
-        glBindAttribLocationSRC == NULL ||
-        glLinkProgramSRC == NULL ||
-        glBindBufferSRC == NULL ||
-        glBufferDataSRC == NULL ||
-        glEnableVertexAttribArraySRC == NULL ||
-        glVertexAttribPointerSRC == NULL ||
-        glDisableVertexAttribArraySRC == NULL ||
-        glDeleteBuffersSRC == NULL ||
-        glDeleteVertexArraysSRC == NULL ||
-        glUseProgramSRC == NULL ||
-        glDetachShaderSRC == NULL ||
-        glDeleteShaderSRC == NULL ||
-        glDeleteProgramSRC == NULL ||
-        glBufferSubDataSRC == NULL ||
-        glGetShaderivSRC == NULL ||
-        glGetShaderInfoLogSRC == NULL ||
-        glGetProgramivSRC == NULL ||
-        glGetProgramInfoLogSRC == NULL ||
-        glGenVertexArraysSRC == NULL ||
-        glGenBuffersSRC == NULL ||
-        glBindVertexArraySRC == NULL ||
-        glGetUniformLocationSRC == NULL ||
-        glUniformMatrix4fvSRC == NULL
-    )
-        return 1;
+    #define PROC(ret, name, ...) \
+        name##SRC = (name##PROC)proc(#name); \
+        if (name##SRC == NULL) return 1;
+    PROCS
+    #undef PROC
 
     GLuint vao;
     glGenVertexArraysSRC(1, &vao);
 
-    if (vao == 0)
-        return 1;
+    if (vao == 0) return 1;
 
     glDeleteVertexArraysSRC(1, &vao);
     return 0;
 }
-#endif
-#endif
+#endif  // RGL_LOAD_IMPLEMENTATION
