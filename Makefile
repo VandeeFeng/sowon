@@ -6,7 +6,7 @@ RGFW_CFLAGS+=		$(COMMON_CFLAGS)
 COMMON_LIBS=		-lm
 SDL2_LIBS=			`pkg-config --libs sdl2` $(COMMON_LIBS)
 ifeq ($(UNAMEOS),Darwin)
-RGFW_LIBS=			$(COMMON_LIBS) -framework OpenGL
+RGFW_LIBS=			$(COMMON_LIBS) -framework CoreVideo -framework Cocoa -framework OpenGL -framework IOKit
 else
 RGFW_LIBS=			-lX11 -lXrandr -lGLX -lGL $(COMMON_LIBS)
 endif
