@@ -1,7 +1,7 @@
-#include "./digits.h"
+#include "digits.h"
 
 #ifdef PENGER
-#include "./penger_walk_sheet.h"
+#include "penger_walk_sheet.h"
 #endif
 
 #include <math.h>

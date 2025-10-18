@@ -12,6 +12,7 @@ Dependencies: [SDL2](https://www.libsdl.org/download-2.0.php)
 ```console
 $ sudo apt-get install libsdl2-dev
 $ make
+$ ./sowon
 ```
 
 ### MacOS
@@ -19,6 +20,7 @@ $ make
 ```console
 $ brew install sdl2 pkg-config
 $ make
+$ ./sowon
 ```
 
 ### Windows
