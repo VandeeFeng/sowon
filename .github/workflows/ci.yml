@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   build-linux-gcc:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - name: install dependencies
@@ -16,7 +16,7 @@ jobs:
         env:
           CC: gcc
   build-linux-clang:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - name: install dependencies
@@ -40,11 +40,9 @@ jobs:
         env:
           CC: clang
   build-windows-msvc:
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v1
-        # this runs vcvarsall for us, so we get the MSVC toolchain in PATH.
-      - uses: seanmiddleditch/gha-setup-vsdevenv@master
+      - uses: actions/checkout@v4
       - name: download sdl2
         run: |
           curl -fsSL -o SDL2-devel-2.0.12-VC.zip https://www.libsdl.org/release/SDL2-devel-2.0.12-VC.zip
@@ -53,6 +51,7 @@ jobs:
       - name: build sowon
         shell: cmd
         run: |
+          call "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat"
           ./build_msvc.bat
 # TODO: FreeBSD build is broken
 #  build-freebsd:
