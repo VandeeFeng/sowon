@@ -1,7 +1,7 @@
 @echo off
 rem launch this from msvc-enabled console
 
-set CXXFLAGS=/std:c++17 /O2 /FC /W4 /WX /nologo
+set CXXFLAGS=/std:c++17 /O2 /FC /W4 /nologo
 set INCLUDES=/I SDL2\include
 set LIBS=SDL2\lib\x64\SDL2.lib SDL2\lib\x64\SDL2main.lib Shell32.lib
 
