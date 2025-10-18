@@ -29,7 +29,7 @@
 
 #include "common.c"
 
-const char *vert_shader =
+const char *vert_shader_source =
     "#version 330\n"
     "precision mediump float;\n"
     "uniform vec2 scr_size;\n"
@@ -44,7 +44,7 @@ const char *vert_shader =
     "    gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);\n"
     "}\n";
 
-const char *frag_shader =
+const char *frag_shader_source =
     "#version 330\n"
     "precision mediump float;\n"
     "uniform sampler2D tex;\n"
@@ -245,12 +245,12 @@ int main(int argc, char **argv)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    GLuint vert_shader_id;
-    if (!compile_shader_source(vert_shader, GL_VERTEX_SHADER, &vert_shader_id)) return 1;
-    GLuint frag_shader_id;
-    if (!compile_shader_source(frag_shader, GL_FRAGMENT_SHADER, &frag_shader_id)) return 1;
+    GLuint vert_shader;
+    if (!compile_shader_source(vert_shader_source, GL_VERTEX_SHADER, &vert_shader)) return 1;
+    GLuint frag_shader;
+    if (!compile_shader_source(frag_shader_source, GL_FRAGMENT_SHADER, &frag_shader)) return 1;
     GLuint program;
-    if (!link_program(vert_shader_id, frag_shader_id, &program)) return 1;
+    if (!link_program(vert_shader, frag_shader, &program)) return 1;
     glUseProgram(program);
 
     tex_uni       = glGetUniformLocation(program, "tex");
