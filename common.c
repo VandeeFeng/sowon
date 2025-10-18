@@ -5,6 +5,7 @@
 #endif
 
 #include <math.h>
+#include <time.h>
 
 #define FPS 60
 #define COLON_INDEX 10
