@@ -1,6 +1,6 @@
 UNAMEOS = $(shell uname)
 
-COMMON_CFLAGS=		-Wall -Wextra -std=c99 -pedantic -Ithirdparty -Ibuild
+COMMON_CFLAGS=		-Wall -Wextra -ggdb -std=c99 -pedantic -Ithirdparty -Ibuild
 SDL2_CFLAGS=		`pkg-config --cflags sdl2` $(COMMON_CFLAGS)
 RGFW_CFLAGS=		$(COMMON_CFLAGS)
 COMMON_LIBS=		-lm

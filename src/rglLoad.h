@@ -94,7 +94,7 @@
 #define GL_MAX_TEXTURE_COORDS             0x8871
 
 typedef char GLchar;
-typedef int	 GLsizei;
+typedef int GLsizei;
 typedef ptrdiff_t GLintptr;
 typedef ptrdiff_t GLsizeiptr;
 
@@ -109,11 +109,6 @@ typedef ptrdiff_t GLsizeiptr;
 #endif
 
 #include <stddef.h>
-
-#define RGL_PROC_DEF(proc, name) name##SRC = (name##PROC)proc(#name)
-
-typedef void (*RGLapiproc)(void);
-typedef RGLapiproc (*RGLloadfunc)(const char *name);
 
 #define PROCS \
     PROC(void, glShaderSource, GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length) \
@@ -154,44 +149,51 @@ typedef RGLapiproc (*RGLloadfunc)(const char *name);
     PROC(void, glUniform4f, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) \
     PROC(void, glUniform1i, GLint location, GLint v0)
 
+static inline RGFW_proc load_proc_or_die(const char *name, RGFW_proc *proc);
+
+// Each lazy loaded OpenGL function call might be slighty slower due to an additional condition check, but
+// this is not a performance critical application. Change this to something better when performance issues
+// occur.
+#define LAZY_LOAD_PROC(name) (name##SRC ? name##SRC : (name##PROC)load_proc_or_die(#name, (RGFW_proc*)&name##SRC))
+
 // I wish I could generate these defines with the X-macro too...
-#define glShaderSource glShaderSourceSRC
-#define glCreateShader glCreateShaderSRC
-#define glCompileShader glCompileShaderSRC
-#define glCreateProgram glCreateProgramSRC
-#define glAttachShader glAttachShaderSRC
-#define glBindAttribLocation glBindAttribLocationSRC
-#define glLinkProgram glLinkProgramSRC
-#define glBindBuffer glBindBufferSRC
-#define glBufferData glBufferDataSRC
-#define glEnableVertexAttribArray glEnableVertexAttribArraySRC
-#define glVertexAttribPointer glVertexAttribPointerSRC
-#define glDisableVertexAttribArray glDisableVertexAttribArraySRC
-#define glDeleteBuffers glDeleteBuffersSRC
-#define glDeleteVertexArrays glDeleteVertexArraysSRC
-#define glUseProgram glUseProgramSRC
-#define glDetachShader glDetachShaderSRC
-#define glDeleteShader glDeleteShaderSRC
-#define glDeleteProgram glDeleteProgramSRC
-#define glBufferSubData glBufferSubDataSRC
-#define glGetShaderiv glGetShaderivSRC
-#define glGetShaderInfoLog glGetShaderInfoLogSRC
-#define glGetProgramiv glGetProgramivSRC
-#define glGetProgramInfoLog glGetProgramInfoLogSRC
-#define glGenVertexArrays glGenVertexArraysSRC
-#define glGenBuffers glGenBuffersSRC
-#define glBindVertexArray glBindVertexArraySRC
-#define glGetUniformLocation glGetUniformLocationSRC
-#define glUniformMatrix4fv glUniformMatrix4fvSRC
-#define glTexImage2D glTexImage2DSRC
-#define glActiveTexture glActiveTextureSRC
-#define glDebugMessageCallback glDebugMessageCallbackSRC
-#define glDrawElements glDrawElementsSRC
-#define glClear glClearSRC
-#define glClearColor glClearColorSRC
-#define glUniform2f glUniform2fSRC
-#define glUniform4f glUniform4fSRC
-#define glUniform1i glUniform1iSRC
+#define glShaderSource             LAZY_LOAD_PROC(glShaderSource)
+#define glCreateShader             LAZY_LOAD_PROC(glCreateShader)
+#define glCompileShader            LAZY_LOAD_PROC(glCompileShader)
+#define glCreateProgram            LAZY_LOAD_PROC(glCreateProgram)
+#define glAttachShader             LAZY_LOAD_PROC(glAttachShader)
+#define glBindAttribLocation       LAZY_LOAD_PROC(glBindAttribLocation)
+#define glLinkProgram              LAZY_LOAD_PROC(glLinkProgram)
+#define glBindBuffer               LAZY_LOAD_PROC(glBindBuffer)
+#define glBufferData               LAZY_LOAD_PROC(glBufferData)
+#define glEnableVertexAttribArray  LAZY_LOAD_PROC(glEnableVertexAttribArray)
+#define glVertexAttribPointer      LAZY_LOAD_PROC(glVertexAttribPointer)
+#define glDisableVertexAttribArray LAZY_LOAD_PROC(glDisableVertexAttribArray)
+#define glDeleteBuffers            LAZY_LOAD_PROC(glDeleteBuffers)
+#define glDeleteVertexArrays       LAZY_LOAD_PROC(glDeleteVertexArrays)
+#define glUseProgram               LAZY_LOAD_PROC(glUseProgram)
+#define glDetachShader             LAZY_LOAD_PROC(glDetachShader)
+#define glDeleteShader             LAZY_LOAD_PROC(glDeleteShader)
+#define glDeleteProgram            LAZY_LOAD_PROC(glDeleteProgram)
+#define glBufferSubData            LAZY_LOAD_PROC(glBufferSubData)
+#define glGetShaderiv              LAZY_LOAD_PROC(glGetShaderiv)
+#define glGetShaderInfoLog         LAZY_LOAD_PROC(glGetShaderInfoLog)
+#define glGetProgramiv             LAZY_LOAD_PROC(glGetProgramiv)
+#define glGetProgramInfoLog        LAZY_LOAD_PROC(glGetProgramInfoLog)
+#define glGenVertexArrays          LAZY_LOAD_PROC(glGenVertexArrays)
+#define glGenBuffers               LAZY_LOAD_PROC(glGenBuffers)
+#define glBindVertexArray          LAZY_LOAD_PROC(glBindVertexArray)
+#define glGetUniformLocation       LAZY_LOAD_PROC(glGetUniformLocation)
+#define glUniformMatrix4fv         LAZY_LOAD_PROC(glUniformMatrix4fv)
+#define glTexImage2D               LAZY_LOAD_PROC(glTexImage2D)
+#define glActiveTexture            LAZY_LOAD_PROC(glActiveTexture)
+#define glDebugMessageCallback     LAZY_LOAD_PROC(glDebugMessageCallback)
+#define glDrawElements             LAZY_LOAD_PROC(glDrawElements)
+#define glClear                    LAZY_LOAD_PROC(glClear)
+#define glClearColor               LAZY_LOAD_PROC(glClearColor)
+#define glUniform2f                LAZY_LOAD_PROC(glUniform2f)
+#define glUniform4f                LAZY_LOAD_PROC(glUniform4f)
+#define glUniform1i                LAZY_LOAD_PROC(glUniform1i)
 
 #define PROC(ret, name, ...) typedef ret (*name##PROC)(__VA_ARGS__);
 PROCS
@@ -201,24 +203,17 @@ PROCS
 PROCS
 #undef PROC
 
-int RGL_loadGL3(RGLloadfunc proc);
-
 #endif // RGL_H
 
 #ifdef RGL_LOAD_IMPLEMENTATION
-int RGL_loadGL3(RGLloadfunc proc) {
-    #define PROC(ret, name, ...) \
-        name##SRC = (name##PROC)proc(#name); \
-        if (name##SRC == NULL) return 1;
-    PROCS
-    #undef PROC
 
-    GLuint vao;
-    glGenVertexArraysSRC(1, &vao);
-
-    if (vao == 0) return 1;
-
-    glDeleteVertexArraysSRC(1, &vao);
-    return 0;
+static inline RGFW_proc load_proc_or_die(const char *name, RGFW_proc *proc)
+{
+    printf("INFO: loading OpenGL function %s\n", name);
+    *proc = RGFW_getProcAddress(name);
+    if (*proc) return *proc;
+    fprintf(stderr, "ERROR: could not load OpenGL function %s\n", name);
+    abort();
 }
+
 #endif  // RGL_LOAD_IMPLEMENTATION
