@@ -1,7 +1,15 @@
+UNAMEOS = $(shell uname)
+
 COMMON_CFLAGS=		-Wall -Wextra -std=c99 -pedantic
-CFLAGS+=		`pkg-config --cflags sdl2` $(COMMON_CFLAGS)
+SDL2_CFLAGS+=		`pkg-config --cflags sdl2` $(COMMON_CFLAGS)
+RGFW_CFLAGS+=		$(COMMON_CFLAGS)
 COMMON_LIBS=		-lm
-LIBS=			`pkg-config --libs sdl2` $(COMMON_LIBS)
+SDL2_LIBS=			`pkg-config --libs sdl2` $(COMMON_LIBS)
+ifeq ($(UNAMEOS),Darwin)
+RGFW_LIBS=			$(COMMON_LIBS) -framework OpenGL
+else
+RGFW_LIBS=			-lX11 -lXrandr -lGLX -lGL $(COMMON_LIBS)
+endif
 PREFIX?=		/usr/local
 INSTALL?=		install
 
@@ -9,10 +17,10 @@ INSTALL?=		install
 all: Makefile sowon sowon_rgfw man
 
 sowon_rgfw: main_rgfw.c digits.h penger_walk_sheet.h
-	$(CC) $(COMMON_CFLAGS) -o sowon_rgfw main_rgfw.c $(COMMON_LIBS) -lX11 -lXrandr -lGLX -lGL
+	$(CC) $(RGFW_CFLAGS) -o sowon_rgfw main_rgfw.c $(RGFW_LIBS)
 
 sowon: main.c digits.h penger_walk_sheet.h
-	$(CC) $(CFLAGS) -o sowon main.c $(LIBS)
+	$(CC) $(SDL2_CFLAGS) -o sowon main.c $(SDL2_LIBS)
 
 digits.h: png2c digits.png
 	./png2c digits.png digits > digits.h
