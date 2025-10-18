@@ -45,5 +45,6 @@ clean:
 install: all
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)/bin
 	$(INSTALL) -C ./sowon $(DESTDIR)$(PREFIX)/bin
+	$(INSTALL) -C ./sowon_rgfw $(DESTDIR)$(PREFIX)/bin
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)/man/man6
 	$(INSTALL) -C docs/sowon.6.gz $(DESTDIR)$(PREFIX)/man/man6
