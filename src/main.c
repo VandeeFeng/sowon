@@ -60,7 +60,7 @@ SDL_Texture *load_penger_png_file_as_texture(SDL_Renderer *renderer)
 void render_digit_at(SDL_Renderer *renderer, SDL_Texture *digits, size_t digit_index,
                      size_t wiggle_index, int *pen_x, int *pen_y, float user_scale, float fit_scale)
 {
-    const int effective_digit_width = (int) floorf((float) CHAR_WIDTH * user_scale * fit_scale);
+    const int effective_digit_width = (int) floorf((float) DIGIT_WIDTH * user_scale * fit_scale);
     const int effective_digit_height = (int) floorf((float) CHAR_HEIGHT * user_scale * fit_scale);
 
     const SDL_Rect src_rect = {

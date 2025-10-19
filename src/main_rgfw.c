@@ -167,7 +167,7 @@ void texture_copy(GLint texture_unit, int tex_width, int tex_height, RGFW_rect s
 
 void render_digit_at(GLint digits_tex_unit, size_t digit_index, size_t wiggle_index, int *pen_x, int *pen_y, float user_scale, float fit_scale)
 {
-    const int effective_digit_width = (int) floorf((float) CHAR_WIDTH * user_scale * fit_scale);
+    const int effective_digit_width = (int) floorf((float) DIGIT_WIDTH * user_scale * fit_scale);
     const int effective_digit_height = (int) floorf((float) CHAR_HEIGHT * user_scale * fit_scale);
 
     const RGFW_rect src_rect = {
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
 
     glUniform4f(dst_rect_uni, 0, 0, 500, 500);
     glUniform2f(scr_size_uni, win_rect.w, win_rect.h);
-    glUniform4f(src_rect_uni, 0, 0, CHAR_WIDTH, CHAR_HEIGHT);
+    glUniform4f(src_rect_uni, 0, 0, DIGIT_WIDTH, CHAR_HEIGHT);
     glUniform2f(tex_size_uni, digits_width, digits_height);
 
     GLint digits_tex_unit = load_image_data_as_gl_texture(digits_data, digits_width, digits_height);

@@ -15,10 +15,10 @@
 #define SPRITE_CHAR_HEIGHT (380 / 2)
 #define WIGGLE_COUNT 3
 #define WIGGLE_DURATION (0.40f / WIGGLE_COUNT)
-#define CHAR_WIDTH (300 / 2)
+#define DIGIT_WIDTH (300 / 2)
 #define CHAR_HEIGHT (380 / 2)
 #define CHARS_COUNT 8
-#define TEXT_WIDTH (CHAR_WIDTH * CHARS_COUNT)
+#define TEXT_WIDTH (DIGIT_WIDTH * CHARS_COUNT)
 #define TEXT_HEIGHT (CHAR_HEIGHT)
 #define MAIN_COLOR_R 220
 #define MAIN_COLOR_G 220
@@ -180,7 +180,7 @@ void initial_pen(int w, int h, int *pen_x, int *pen_y, float user_scale, float *
         *fit_scale = (float) h / (float) TEXT_HEIGHT;
     }
 
-    const int effective_digit_width = (int) floorf((float) CHAR_WIDTH * user_scale * *fit_scale);
+    const int effective_digit_width = (int) floorf((float) DIGIT_WIDTH * user_scale * *fit_scale);
     const int effective_digit_height = (int) floorf((float) CHAR_HEIGHT * user_scale * *fit_scale);
     *pen_x = w / 2 - effective_digit_width * CHARS_COUNT / 2;
     *pen_y = h / 2 - effective_digit_height / 2;
