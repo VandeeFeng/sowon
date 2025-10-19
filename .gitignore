@@ -1,7 +1,6 @@
 sowon
-png2c
-digits.h
-penger_walk_sheet.h
+sowon_rgfw
+build/
 *.kra
 *~
 SDL2
