@@ -210,7 +210,7 @@ PROCS
 static inline RGFW_proc load_proc_or_die(const char *name, RGFW_proc *proc)
 {
     printf("INFO: loading OpenGL function %s\n", name);
-    *proc = RGFW_getProcAddress(name);
+    *proc = RGFW_getProcAddress_OpenGL(name);
     if (*proc) return *proc;
     fprintf(stderr, "ERROR: could not load OpenGL function %s\n", name);
     abort();

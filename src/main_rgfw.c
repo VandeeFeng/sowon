@@ -22,7 +22,48 @@
 #endif
 
 #define RGFW_IMPLEMENTATION
+#define RGFW_OPENGL
 #include "RGFW.h"
+typedef struct { i32 x, y, w, h; } RGFW_rect;
+
+#ifdef _WIN32
+void RGFW_sleep(u64 ms) {
+	Sleep((u32)ms);
+}
+
+u64 RGFW_getTimerFreq(void) {
+	static u64 frequency = 0;
+	if (frequency == 0) QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
+
+	return frequency;
+}
+
+u64 RGFW_getTimerValue(void) {
+	u64 value;
+	QueryPerformanceCounter((LARGE_INTEGER*)&value);
+	return value;
+}
+#else 
+// TODO: make RGFW_getTimerFreq, RGFW_getTimerValue, RGFW_sleep compile on the rest of the platforms (Windows, MacOS)
+void RGFW_sleep(u64 ms) {
+	struct timespec time;
+	time.tv_sec = 0;
+	time.tv_nsec = (long int)((double)ms * 1e+6);
+
+	#ifndef RGFW_NO_UNIX_CLOCK
+	nanosleep(&time, NULL);
+	#endif
+}
+
+u64 RGFW_getTimerFreq(void) { return 1000000000LLU; }
+u64 RGFW_getTimerValue(void) {
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
+    return (u64)ts.tv_sec * RGFW_getTimerFreq() + (u64)ts.tv_nsec;
+}
+
+#endif // _WIN32
+
 #define RGL_LOAD_IMPLEMENTATION
 #include "rglLoad.h"
 
@@ -231,12 +272,16 @@ int main(int argc, char **argv)
 
     parse_state_from_args(&state, argc, argv);
 
-    RGFW_setGLHint(RGFW_glProfile, RGFW_glCore);
-    RGFW_setGLHint(RGFW_glMajor, 3);
-    RGFW_setGLHint(RGFW_glMinor, 3);
+    RGFW_glHints *hints = RGFW_getGlobalHints_OpenGL();
+    hints->profile = RGFW_glCore;
+    hints->major = 3;
+    hints->minor = 3;
+    RGFW_setGlobalHints_OpenGL(hints);
 
-    RGFW_rect win_rect = RGFW_RECT(0, 0, TEXT_WIDTH, TEXT_HEIGHT*2);
-    RGFW_window* win = RGFW_createWindow("sowon (RGFW)", win_rect, 0);
+    RGFW_rect win_rect = {0, 0, TEXT_WIDTH, TEXT_HEIGHT*2};
+    RGFW_window* win = RGFW_createWindow("sowon (RGFW)", win_rect.x, win_rect.y, win_rect.w, win_rect.h, RGFW_windowOpenGL);
+
+    RGFW_window_makeCurrentContext_OpenGL(win);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -284,14 +329,15 @@ int main(int argc, char **argv)
         last_time = now;
 
         // INPUT BEGIN //////////////////////////////
-        while (RGFW_window_checkEvent(win)) {
-            switch (win->event.type) {
+        RGFW_event event = {0};
+        while (RGFW_window_checkEvent(win, &event)) {
+            switch (event.type) {
             case RGFW_windowResized: {
-                glViewport(0, 0, win->r.w, win->r.h);
-                glUniform2f(scr_size_uni, win->r.w, win->r.h);
+                glViewport(0, 0, win->w, win->h);
+                glUniform2f(scr_size_uni, win->w, win->h);
             } break;
             case RGFW_keyPressed: {
-                switch (win->event.key) {
+                switch (event.key.value) {
                 case RGFW_space: {
                     state.paused = !state.paused;
                     if (state.paused) {
@@ -329,7 +375,7 @@ int main(int argc, char **argv)
                 } break;
 
                 case RGFW_F11: {
-                    RGFW_windowFlags window_flags = win->_flags; // TODO: use RGFW_window_getFlags() when RGFW 1.8.0 is released
+                    RGFW_windowFlags window_flags = RGFW_window_getFlags(win); // TODO: use RGFW_window_getFlags() when RGFW 1.8.0 is released
                     if (window_flags & RGFW_windowFullscreen) {
                         RGFW_window_setFlags(win, window_flags & (~RGFW_windowFullscreen));
                     } else {
@@ -339,10 +385,10 @@ int main(int argc, char **argv)
                 }
             } break;
             case RGFW_mouseButtonPressed: {
-                if (win->event.keyMod & RGFW_modControl) {
-                    if (win->event.scroll > 0) {
+                if (event.key.mod & RGFW_modControl) {
+                    if (event.scroll.y > 0) {
                         state.user_scale += SCALE_FACTOR * state.user_scale;
-                    } else if (win->event.scroll < 0) {
+                    } else if (event.scroll.y < 0) {
                         state.user_scale -= SCALE_FACTOR * state.user_scale;
                     }
                 }
@@ -360,7 +406,7 @@ int main(int argc, char **argv)
             // PENGER BEGIN //////////////////////////////
 
             #ifdef PENGER
-            render_penger_at(penger_tex_unit, win->r.w, win->r.h, state.displayed_time, state.mode==MODE_COUNTDOWN);
+            render_penger_at(penger_tex_unit, win->w, win->h, state.displayed_time, state.mode==MODE_COUNTDOWN);
             #endif
 
             // PENGER END //////////////////////////////
@@ -368,7 +414,7 @@ int main(int argc, char **argv)
             // DIGITS BEGIN //////////////////////////////
             int pen_x, pen_y;
             float fit_scale = 1.0;
-            initial_pen(win->r.w, win->r.h, &pen_x, &pen_y, state.user_scale, &fit_scale);
+            initial_pen(win->w, win->h, &pen_x, &pen_y, state.user_scale, &fit_scale);
 
             // TODO: support amount of hours >99
             const size_t hours = t / 60 / 60;
@@ -394,7 +440,7 @@ int main(int argc, char **argv)
             // DIGITS END //////////////////////////////
         }
 
-        RGFW_window_swapBuffers(win);
+        RGFW_window_swapBuffers_OpenGL(win);
         // RENDER END //////////////////////////////
 
         // UPDATE BEGIN //////////////////////////////
