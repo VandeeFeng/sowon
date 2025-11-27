@@ -26,6 +26,24 @@
 #include "RGFW.h"
 typedef struct { i32 x, y, w, h; } RGFW_rect;
 
+#ifdef _WIN32
+void RGFW_sleep(u64 ms) {
+	Sleep((u32)ms);
+}
+
+u64 RGFW_getTimerFreq(void) {
+	static u64 frequency = 0;
+	if (frequency == 0) QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
+
+	return frequency;
+}
+
+u64 RGFW_getTimerValue(void) {
+	u64 value;
+	QueryPerformanceCounter((LARGE_INTEGER*)&value);
+	return value;
+}
+#else 
 // TODO: make RGFW_getTimerFreq, RGFW_getTimerValue, RGFW_sleep compile on the rest of the platforms (Windows, MacOS)
 void RGFW_sleep(u64 ms) {
 	struct timespec time;
@@ -43,6 +61,8 @@ u64 RGFW_getTimerValue(void) {
 	clock_gettime(CLOCK_REALTIME, &ts);
     return (u64)ts.tv_sec * RGFW_getTimerFreq() + (u64)ts.tv_nsec;
 }
+
+#endif // _WIN32
 
 #define RGL_LOAD_IMPLEMENTATION
 #include "rglLoad.h"
