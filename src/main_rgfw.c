@@ -43,7 +43,7 @@ u64 RGFW_getTimerValue(void) {
 	QueryPerformanceCounter((LARGE_INTEGER*)&value);
 	return value;
 }
-#else 
+#else
 // TODO: make RGFW_getTimerFreq, RGFW_getTimerValue, RGFW_sleep compile on the rest of the platforms (Windows, MacOS)
 void RGFW_sleep(u64 ms) {
 	struct timespec time;
@@ -384,8 +384,8 @@ int main(int argc, char **argv)
                 } break;
                 }
             } break;
-            case RGFW_mouseButtonPressed: {
-                if (event.key.mod & RGFW_modControl) {
+            case RGFW_mouseScroll: {
+                if (RGFW_isKeyDown(RGFW_controlL) || RGFW_isKeyDown(RGFW_controlR)) {
                     if (event.scroll.y > 0) {
                         state.user_scale += SCALE_FACTOR * state.user_scale;
                     } else if (event.scroll.y < 0) {
