@@ -9,7 +9,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -qq libsdl2-dev
+          sudo apt-get install -qq libgl-dev libxcursor-dev libxrandr-dev libxi-dev
       - name: build sowon
         run: |
           make
@@ -22,7 +22,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -qq libsdl2-dev
+          sudo apt-get install -qq libgl-dev libxcursor-dev libxrandr-dev libxi-dev
       - name: build sowon
         run: |
           make
@@ -32,8 +32,6 @@ jobs:
     runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v1
-      - name: install dependencies
-        run: brew install sdl2 pkg-config
       - name: build sowon
         run: |
           make
@@ -43,11 +41,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: download sdl2
-        run: |
-          curl -fsSL -o SDL2-devel-2.0.12-VC.zip https://www.libsdl.org/release/SDL2-devel-2.0.12-VC.zip
-          tar -xf SDL2-devel-2.0.12-VC.zip
-          mv SDL2-2.0.12 SDL2
       - name: build sowon
         shell: cmd
         run: |
