@@ -14,6 +14,14 @@ $ make
 $ ./sowon
 ```
 
+### Fedora 42+
+
+```console
+$ sudo dnf install libXi-devel libXrandr-devel
+$ make
+$ ./sowon
+```
+
 ### MacOS
 
 ```console
@@ -50,7 +58,7 @@ $ ./sowon
 | Key | Description |
 | --- | --- |
 | <kbd>SPACE</kbd> | Toggle pause |
-| <kbd>=</kbd> | Zoom in |
+| <kbd>=</kbd> or <kbd>+</kbd> | Zoom in |
 | <kbd>-</kbd> | Zoom out |
 | <kbd>0</kbd> | Zoom 100% |
 | <kbd>F5</kbd> | Restart |
