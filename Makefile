@@ -15,7 +15,7 @@ INSTALL?=		install
 all: Makefile sowon man
 
 sowon: src/main.c src/25hour.c build/digits.h build/penger_walk_sheet.h
-	$(CC) $(RGFW_CFLAGS) -DPENGER -o sowon src/main.c src/25hour.c $(RGFW_LIBS)
+	$(CC) $(RGFW_CFLAGS) -o sowon src/main.c src/25hour.c $(RGFW_LIBS)
 
 build/digits.h: build/png2c ./assets/digits.png
 	./build/png2c ./assets/digits.png digits > build/digits.h
