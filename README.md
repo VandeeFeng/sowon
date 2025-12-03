@@ -6,7 +6,15 @@
 
 ## Build
 
-### POSIX
+### Ubuntu
+
+```console
+$ sudo apt-get install -qq libgl-dev libxcursor-dev libxrandr-dev libxi-dev
+$ make
+$ ./sowon
+```
+
+### MacOS
 
 ```console
 $ make
