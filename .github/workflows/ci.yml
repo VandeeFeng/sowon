@@ -9,7 +9,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -qq libgl-dev
+          sudo apt-get install -qq libgl-dev libxcursor-dev
       - name: build sowon
         run: |
           make
@@ -22,7 +22,7 @@ jobs:
       - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -qq libgl-dev
+          sudo apt-get install -qq libgl-dev libxcursor-dev
       - name: build sowon
         run: |
           make
