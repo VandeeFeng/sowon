@@ -10,4 +10,4 @@ mkdir build
 cl.exe %COMMON_CXXFLAGS% /Febuild\png2c src\png2c.c /link %COMMON_LIBS% -SUBSYSTEM:console
 build\png2c.exe assets\digits.png digits > build\digits.h
 build\png2c.exe assets\penger_walk_sheet.png penger > build\penger_walk_sheet.h
-cl.exe %RGFW_CXXFLAGS% /Fesowon_rgfw src/main_rgfw.c /link %RGFW_LIBS%
+cl.exe %RGFW_CXXFLAGS% /Fesowon src/main.c /link %RGFW_LIBS%
