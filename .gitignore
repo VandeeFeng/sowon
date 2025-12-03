@@ -3,7 +3,6 @@ sowon_rgfw
 build/
 *.kra
 *~
-SDL2
 *.obj
 *.exe
 .dSYM/
