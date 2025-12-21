@@ -153,19 +153,10 @@ void state_update(State *state, float dt)
             }
         } break;
         case MODE_25HOUR_CLOCK: {
-            float displayed_time_prev = state->displayed_time;
             time_t t = time(NULL);
             Chrono25Time chrono_time;
             convert_to_25hour(t, &chrono_time);
             state->displayed_time = chrono_time.new_seconds + chrono_time.new_minutes  * 60.0f + chrono_time.new_hours * 60.0f * 60.0f;
-            if (state->displayed_time <= displayed_time_prev) {
-                // same second, keep previous count and add subsecond resolution for penger
-                if (floorf(displayed_time_prev) == floorf(displayed_time_prev+dt)) { // check for no newsecond shenaningans from dt
-                    state->displayed_time = displayed_time_prev + dt;
-                } else {
-                    state->displayed_time = displayed_time_prev;
-                }
-            }
         } break;
         }
     }
