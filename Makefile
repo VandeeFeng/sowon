@@ -14,11 +14,14 @@ INSTALL?=		install
 .PHONY: all
 all: Makefile sowon man
 
-sowon: src/main.c src/25hour.c build/digits.h build/penger_walk_sheet.h
+sowon: src/main.c src/common.c src/25hour.c build/digits.h build/cat_guard.h build/penger_walk_sheet.h
 	$(CC) $(RGFW_CFLAGS) -o sowon src/main.c src/25hour.c $(RGFW_LIBS)
 
 build/digits.h: build/png2c ./assets/digits.png
 	./build/png2c ./assets/digits.png digits > build/digits.h
+
+build/cat_guard.h: build/png2c ./assets/cat_guard.png
+	./build/png2c ./assets/cat_guard.png cat_guard > build/cat_guard.h
 
 build/penger_walk_sheet.h: build/png2c ./assets/penger_walk_sheet.png
 	./build/png2c ./assets/penger_walk_sheet.png penger > build/penger_walk_sheet.h

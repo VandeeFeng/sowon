@@ -1,4 +1,5 @@
 #include "digits.h"
+#include "cat_guard.h"
 
 #ifdef PENGER
 #include "penger_walk_sheet.h"
@@ -34,6 +35,11 @@
 #define PENGER_SCALE 4
 #define SCALE_FACTOR 0.15f
 #define TITLE_CAP 256
+#define CAT_GUARD_FRAME_WIDTH 128
+#define CAT_GUARD_FRAME_HEIGHT 48
+#define CAT_GUARD_WIDTH 160
+#define CAT_GUARD_HEIGHT 60
+#define CAT_GUARD_MARGIN 12
 
 typedef enum {
     MODE_ASCENDING = 0,
@@ -70,6 +76,85 @@ float parse_time(const char *time)
     }
 
     return result;
+}
+
+typedef struct {
+    bool active;
+} CatGuard;
+
+static bool keyboard_guard_active;
+
+bool set_keyboard_enabled(bool enabled)
+{
+#ifdef __linux__
+    const char *event_state = enabled ? "enabled" : "disabled";
+    char command[1024];
+    snprintf(command, sizeof(command),
+             "command -v jq >/dev/null && command -v swaymsg >/dev/null && "
+             "commands=$(swaymsg -t get_inputs -r | "
+             "jq -er '[.[] | select(.type == \"keyboard\") | \"input \" + "
+             "(.identifier | @json) + \" events %s\"] | "
+             "if length > 0 then join(\"; \") else error(\"no keyboards\") end') && "
+             "swaymsg \"$commands\" | jq -e 'all(.success)' >/dev/null",
+             event_state);
+
+    if (getenv("SWAYSOCK") == NULL || system(command) != 0) {
+        fprintf(stderr, "Could not %s keyboards by ID with swaymsg.\n", event_state);
+        return false;
+    }
+    return true;
+#else
+    (void) enabled;
+    fprintf(stderr, "Cat Guard requires the Sway compositor.\n");
+    return false;
+#endif
+}
+
+void restore_keyboard_at_exit(void)
+{
+    if (keyboard_guard_active) set_keyboard_enabled(true);
+}
+
+void cat_guard_toggle(CatGuard *guard)
+{
+    bool active = !guard->active;
+    if (!set_keyboard_enabled(!active)) {
+        if (active) set_keyboard_enabled(true);
+        return;
+    }
+
+    guard->active = active;
+    keyboard_guard_active = active;
+}
+
+float cat_guard_scale(int window_width, int window_height)
+{
+    float width_scale = (float) window_width / TEXT_WIDTH;
+    float height_scale = (float) window_height / (TEXT_HEIGHT * 2);
+    float horizontal_limit = (float) window_width / (CAT_GUARD_WIDTH + CAT_GUARD_MARGIN * 2);
+    float vertical_limit = (float) window_height / (CAT_GUARD_HEIGHT + CAT_GUARD_MARGIN * 2);
+    float proportional_scale = sqrtf(width_scale * height_scale);
+    return fminf(proportional_scale, fminf(horizontal_limit, vertical_limit));
+}
+
+RGFW_rect cat_guard_rect(int window_width, int window_height)
+{
+    float scale = cat_guard_scale(window_width, window_height);
+    int width = (int) floorf(CAT_GUARD_WIDTH * scale);
+    int height = (int) floorf(CAT_GUARD_HEIGHT * scale);
+    int margin = (int) floorf(CAT_GUARD_MARGIN * scale);
+    RGFW_rect rect = {
+        window_width - width - margin,
+        margin,
+        width,
+        height
+    };
+    return rect;
+}
+
+bool point_in_rect(int x, int y, RGFW_rect rect)
+{
+    return x >= rect.x && x < rect.x + rect.w && y >= rect.y && y < rect.y + rect.h;
 }
 
 typedef struct {

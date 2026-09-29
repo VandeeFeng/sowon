@@ -197,6 +197,15 @@ void set_texture_color_mod(GLfloat r, GLfloat g, GLfloat b)
     glUniform4f(color_mod_uni, r, g, b, 1);
 }
 
+void set_timer_color(bool paused)
+{
+    if (paused) {
+        set_texture_color_mod(PAUSE_COLOR_R/255.0f, PAUSE_COLOR_G/255.0f, PAUSE_COLOR_B/255.0f);
+    } else {
+        set_texture_color_mod(MAIN_COLOR_R/255.0f, MAIN_COLOR_G/255.0f, MAIN_COLOR_B/255.0f);
+    }
+}
+
 void texture_copy(GLint texture_unit, int tex_width, int tex_height, RGFW_rect src_rect, RGFW_rect dst_rect)
 {
     glUniform1i(tex_uni, texture_unit);
@@ -269,8 +278,10 @@ void render_penger_at(GLint penger_tex_unit, int window_width, int window_height
 int main(int argc, char **argv)
 {
     State state = {0};
+    CatGuard cat_guard = {0};
 
     parse_state_from_args(&state, argc, argv);
+    atexit(restore_keyboard_at_exit);
 
     RGFW_glHints *hints = RGFW_getGlobalHints_OpenGL();
     hints->profile = RGFW_glCore;
@@ -307,16 +318,12 @@ int main(int argc, char **argv)
     glUniform2f(tex_size_uni, digits_width, digits_height);
 
     GLint digits_tex_unit = load_image_data_as_gl_texture(digits_data, digits_width, digits_height);
+    GLint cat_guard_tex_unit = load_image_data_as_gl_texture(cat_guard_data, cat_guard_width, cat_guard_height);
     #ifdef PENGER
     GLint penger_tex_unit = load_image_data_as_gl_texture(penger_data, penger_width, penger_height);
     #endif
 
-    set_texture_color_mod(MAIN_COLOR_R/255.0f, MAIN_COLOR_G/255.0f, MAIN_COLOR_B/255.0f);
-    if (state.paused) {
-        set_texture_color_mod(PAUSE_COLOR_R/255.0f, PAUSE_COLOR_G/255.0f, PAUSE_COLOR_B/255.0f);
-    } else {
-        set_texture_color_mod(MAIN_COLOR_R/255.0f, MAIN_COLOR_G/255.0f, MAIN_COLOR_B/255.0f);
-    }
+    set_timer_color(state.paused);
 
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -340,11 +347,7 @@ int main(int argc, char **argv)
                 switch (event.key.value) {
                 case RGFW_space: {
                     state.paused = !state.paused;
-                    if (state.paused) {
-                        set_texture_color_mod(PAUSE_COLOR_R/255.0f, PAUSE_COLOR_G/255.0f, PAUSE_COLOR_B/255.0f);
-                    } else {
-                        set_texture_color_mod(MAIN_COLOR_R/255.0f, MAIN_COLOR_G/255.0f, MAIN_COLOR_B/255.0f);
-                    }
+                    set_timer_color(state.paused);
                 } break;
 
                 // TODO: add support for RGFW_kpPlus when RGFW 1.8.0 is released
@@ -367,11 +370,7 @@ int main(int argc, char **argv)
 
                 case RGFW_F5: {
                     parse_state_from_args(&state, argc, argv);
-                    if (state.paused) {
-                        set_texture_color_mod(PAUSE_COLOR_R/255.0f, PAUSE_COLOR_G/255.0f, PAUSE_COLOR_B/255.0f);
-                    } else {
-                        set_texture_color_mod(MAIN_COLOR_R/255.0f, MAIN_COLOR_G/255.0f, MAIN_COLOR_B/255.0f);
-                    }
+                    set_timer_color(state.paused);
                 } break;
 
                 case RGFW_F11: {
@@ -391,6 +390,14 @@ int main(int argc, char **argv)
                     } else if (event.scroll.y < 0) {
                         state.user_scale -= SCALE_FACTOR * state.user_scale;
                     }
+                }
+            } break;
+            case RGFW_mouseButtonPressed: {
+                i32 mouse_x, mouse_y;
+                RGFW_window_getMouse(win, &mouse_x, &mouse_y);
+                if (event.button.value == RGFW_mouseLeft &&
+                    point_in_rect(mouse_x, mouse_y, cat_guard_rect(win->w, win->h))) {
+                    cat_guard_toggle(&cat_guard);
                 }
             } break;
             }
@@ -432,13 +439,28 @@ int main(int argc, char **argv)
             render_digit_at(digits_tex_unit, seconds % 10, (state.wiggle_index + 5) % WIGGLE_COUNT, &pen_x, &pen_y, state.user_scale, fit_scale);
 
             char title[TITLE_CAP];
-            snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon (RGFW)", hours, minutes, seconds);
+            if (cat_guard.active) {
+                snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - PAWS OFF!", hours, minutes, seconds);
+            } else {
+                snprintf(title, sizeof(title), "%02zu:%02zu:%02zu - sowon (RGFW)", hours, minutes, seconds);
+            }
             if (strcmp(state.prev_title, title) != 0) {
                 RGFW_window_setName(win, title);
+                snprintf(state.prev_title, sizeof(state.prev_title), "%s", title);
             }
-            memcpy(title, state.prev_title, TITLE_CAP);
             // DIGITS END //////////////////////////////
         }
+
+        set_texture_color_mod(1.0f, 1.0f, 1.0f);
+        RGFW_rect guard_source = {
+            cat_guard.active ? CAT_GUARD_FRAME_WIDTH : 0,
+            0,
+            CAT_GUARD_FRAME_WIDTH,
+            CAT_GUARD_FRAME_HEIGHT
+        };
+        texture_copy(cat_guard_tex_unit, cat_guard_width, cat_guard_height,
+                     guard_source, cat_guard_rect(win->w, win->h));
+        set_timer_color(state.paused);
 
         RGFW_window_swapBuffers_OpenGL(win);
         // RENDER END //////////////////////////////
@@ -453,6 +475,7 @@ int main(int argc, char **argv)
         if (frame_time < frame_cap) RGFW_sleep(frame_cap - frame_time);
     }
 
+    if (cat_guard.active) cat_guard_toggle(&cat_guard);
     RGFW_window_close(win);
 
     return 0;

@@ -68,3 +68,7 @@ $ ./sowon
 | <kbd>0</kbd> | Zoom 100% |
 | <kbd>F5</kbd> | Restart |
 | <kbd>F11</kbd> | Fullscreen |
+
+### Cat Guard (Sway)
+
+Click **CAT GUARD** in the top-right corner to disable every keyboard by its Sway input ID. Click **PAWS OFF!** to restore them. The keyboard is also restored when Sowon exits normally. This feature requires `swaymsg` and `jq`.

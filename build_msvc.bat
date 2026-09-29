@@ -9,5 +9,6 @@ set RGFW_LIBS=%COMMON_LIBS% -SUBSYSTEM:windows /entry:mainCRTStartup
 mkdir build
 cl.exe %COMMON_CXXFLAGS% /Febuild\png2c src\png2c.c /link %COMMON_LIBS% -SUBSYSTEM:console
 build\png2c.exe assets\digits.png digits > build\digits.h
+build\png2c.exe assets\cat_guard.png cat_guard > build\cat_guard.h
 build\png2c.exe assets\penger_walk_sheet.png penger > build\penger_walk_sheet.h
 cl.exe %RGFW_CXXFLAGS% /Fesowon src/main.c /link %RGFW_LIBS%
