@@ -10,6 +10,13 @@
 #include <math.h>
 #include <time.h>
 
+#ifdef __linux__
+#include <errno.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
+
 #define FPS 60
 #define COLON_INDEX 10
 #define SPRITE_CHAR_WIDTH (300 / 2)
@@ -84,6 +91,31 @@ typedef struct {
 
 static bool keyboard_guard_active;
 
+#ifdef __linux__
+static pid_t keyboard_guard_watchdog;
+#define CAT_GUARD_POLL_SECONDS 1
+
+bool cat_guard_session_safe(void)
+{
+    return system(
+        "command -v pgrep >/dev/null || exit 1; "
+        "if pgrep -u \"$(id -u)\" -x swaylock >/dev/null; then exit 1; fi; "
+        "if [ \"$(loginctl show-session \"${XDG_SESSION_ID:-self}\" "
+        "-p LockedHint --value 2>/dev/null)\" = yes ]; then exit 1; fi; "
+        "swaymsg -t get_outputs -r | jq -e 'length > 0 and "
+        "all(.active != false and .power != false and .dpms != false)' >/dev/null"
+    ) == 0;
+}
+
+void stop_keyboard_watchdog(void)
+{
+    if (keyboard_guard_watchdog <= 0) return;
+    kill(keyboard_guard_watchdog, SIGTERM);
+    while (waitpid(keyboard_guard_watchdog, NULL, 0) < 0 && errno == EINTR) {}
+    keyboard_guard_watchdog = 0;
+}
+#endif
+
 bool set_keyboard_enabled(bool enabled)
 {
 #ifdef __linux__
@@ -110,21 +142,75 @@ bool set_keyboard_enabled(bool enabled)
 #endif
 }
 
+#ifdef __linux__
+bool start_keyboard_watchdog(void)
+{
+    pid_t parent = getpid();
+    keyboard_guard_watchdog = fork();
+    if (keyboard_guard_watchdog < 0) {
+        perror("Could not start keyboard watchdog");
+        keyboard_guard_watchdog = 0;
+        return false;
+    }
+    if (keyboard_guard_watchdog == 0) {
+        // Rendering may block while outputs are powered off.
+        while (getppid() == parent && cat_guard_session_safe()) {
+            sleep(CAT_GUARD_POLL_SECONDS);
+        }
+        while (!set_keyboard_enabled(true)) sleep(CAT_GUARD_POLL_SECONDS);
+        _exit(EXIT_SUCCESS);
+    }
+    return true;
+}
+#endif
+
 void restore_keyboard_at_exit(void)
 {
-    if (keyboard_guard_active) set_keyboard_enabled(true);
+    if (keyboard_guard_active && !set_keyboard_enabled(true)) return;
+#ifdef __linux__
+    stop_keyboard_watchdog();
+#endif
+    keyboard_guard_active = false;
+}
+
+void cat_guard_update(CatGuard *guard)
+{
+#ifdef __linux__
+    if (!guard->active) return;
+    int status = 0;
+    if (keyboard_guard_watchdog > 0) {
+        if (waitpid(keyboard_guard_watchdog, &status, WNOHANG) <= 0) return;
+        keyboard_guard_watchdog = 0;
+        if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS) {
+            guard->active = keyboard_guard_active = false;
+            return;
+        }
+    }
+    if (set_keyboard_enabled(true)) guard->active = keyboard_guard_active = false;
+#else
+    (void) guard;
+#endif
 }
 
 void cat_guard_toggle(CatGuard *guard)
 {
     bool active = !guard->active;
+#ifdef __linux__
+    if (active && !cat_guard_session_safe()) return;
+#endif
     if (!set_keyboard_enabled(!active)) {
         if (active) set_keyboard_enabled(true);
         return;
     }
-
-    guard->active = active;
-    keyboard_guard_active = active;
+    guard->active = keyboard_guard_active = active;
+#ifdef __linux__
+    if (active && !start_keyboard_watchdog()) {
+        restore_keyboard_at_exit();
+        guard->active = keyboard_guard_active;
+    } else if (!active) {
+        stop_keyboard_watchdog();
+    }
+#endif
 }
 
 float cat_guard_scale(int window_width, int window_height)

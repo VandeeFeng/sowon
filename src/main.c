@@ -1,4 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
+#ifdef __linux__
+#define _POSIX_C_SOURCE 200809L
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -334,6 +337,8 @@ int main(int argc, char **argv)
         uint64_t now = RGFW_getTimerValue();
         float dt = (float)(now - last_time)/RGFW_getTimerFreq();
         last_time = now;
+
+        cat_guard_update(&cat_guard);
 
         // INPUT BEGIN //////////////////////////////
         RGFW_event event = {0};

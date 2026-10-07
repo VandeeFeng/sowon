@@ -71,4 +71,10 @@ $ ./sowon
 
 ### Cat Guard (Sway)
 
-Click **CAT GUARD** in the top-right corner to disable every keyboard by its Sway input ID. Click **PAWS OFF!** to restore them. The keyboard is also restored when Sowon exits normally. This feature requires `swaymsg` and `jq`.
+Click **CAT GUARD** in the top-right corner to disable every keyboard by its Sway input ID. Click **PAWS OFF!** to restore them. An independent watchdog restores keyboards within about one second when a Sway output powers off, `swaylock` starts, or the session reports `LockedHint=yes`. CAT GUARD then stays off until manually enabled again. Keyboards are also restored when Sowon exits, including unexpected termination. This feature requires `swaymsg`, `jq`, and `pgrep`; session lock detection additionally uses `loginctl` when available.
+
+Regenerate the Cat Guard artwork with Pillow:
+
+```console
+$ python3 generate_cat_guard_asset.py
+```

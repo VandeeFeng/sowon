@@ -39,7 +39,11 @@ Fullscreen
 .Sh CAT GUARD
 When running under the Sway compositor, click the CAT GUARD button to disable
 all keyboards by input ID. Click PAWS OFF! to restore them. The keyboard is
-also restored when Sowon exits normally. This feature requires swaymsg and jq.
+also restored by an independent watchdog when a Sway output powers off,
+swaylock starts, the session reports LockedHint=yes, or Sowon exits.
+Detection takes about one second and leaves CAT GUARD off until manually enabled.
+This feature requires swaymsg, jq, and pgrep. Session lock detection additionally
+uses loginctl when available.
 .Sh FILES
 .Pa /usr/local/bin/sowon
 .br
